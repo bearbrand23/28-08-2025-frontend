@@ -53,7 +53,7 @@ const BeneficiaryProfileSection = ({ formData, errors, updateField }) => {
   ];
 
   const handleFieldChange = (field, value) => {
-    updateField(field, value);
+    updateField('beneficiaryDetails', field, value);
   };
 
   return (
@@ -83,12 +83,73 @@ const BeneficiaryProfileSection = ({ formData, errors, updateField }) => {
                 <Divider sx={{ mb: 3 }} />
 
                 <Grid container spacing={3}>
+                  {/* Name Information */}
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="First Name *"
+                      value={formData.beneficiaryDetails?.first_name || ''}
+                      onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                      error={!!errors['beneficiaryDetails.first_name']}
+                      helperText={errors['beneficiaryDetails.first_name']}
+                      placeholder="Enter your first name"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Last Name *"
+                      value={formData.beneficiaryDetails?.last_name || ''}
+                      onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                      error={!!errors['beneficiaryDetails.last_name']}
+                      helperText={errors['beneficiaryDetails.last_name']}
+                      placeholder="Enter your last name"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Middle Name"
+                      value={formData.beneficiaryDetails?.middle_name || ''}
+                      onChange={(e) => handleFieldChange('middle_name', e.target.value)}
+                      placeholder="Enter your middle name (optional)"
+                    />
+                  </Grid>
+
+                  {/* Contact Information */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Contact Number *"
+                      value={formData.beneficiaryDetails?.contact_number || ''}
+                      onChange={(e) => handleFieldChange('contact_number', e.target.value)}
+                      error={!!errors['beneficiaryDetails.contact_number']}
+                      helperText={errors['beneficiaryDetails.contact_number']}
+                      placeholder="e.g., +63 912 345 6789"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      type="email"
+                      value={formData.beneficiaryDetails?.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      error={!!errors['beneficiaryDetails.email']}
+                      helperText={errors['beneficiaryDetails.email']}
+                      placeholder="your.email@example.com"
+                    />
+                  </Grid>
+
                   {/* Location Information */}
                   <Grid item xs={12} md={6}>
-                    <FormControl fullWidth error={!!errors['beneficiaryProfile.barangay']}>
+                    <FormControl fullWidth error={!!errors['beneficiaryDetails.barangay']}>
                       <InputLabel>Barangay *</InputLabel>
                       <Select
-                        value={formData.barangay || ''}
+                        value={formData.beneficiaryDetails?.barangay || ''}
                         onChange={(e) => handleFieldChange('barangay', e.target.value)}
                         label="Barangay *"
                       >
@@ -98,8 +159,8 @@ const BeneficiaryProfileSection = ({ formData, errors, updateField }) => {
                           </MenuItem>
                         ))}
                       </Select>
-                      {errors['beneficiaryProfile.barangay'] && (
-                        <FormHelperText>{errors['beneficiaryProfile.barangay']}</FormHelperText>
+                      {errors['beneficiaryDetails.barangay'] && (
+                        <FormHelperText>{errors['beneficiaryDetails.barangay']}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>

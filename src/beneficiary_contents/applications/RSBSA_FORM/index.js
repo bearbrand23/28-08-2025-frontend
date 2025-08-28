@@ -95,12 +95,18 @@ const ActionButtonContainer = styled(Box)(({ theme }) => ({
 }));
 
 const RSBSAForm = () => {
+  // Get user ID from context or props (this should be provided by your auth system)
+  const userId = 1; // Replace with actual user ID from authentication context
+  
   const {
     formData,
     errors,
+    backendErrors,
     isSubmitting,
+    isSavingDraft,
     currentStep,
     totalSteps,
+    submissionResult,
     updateField,
     addFarmParcel,
     updateFarmParcel,
@@ -109,14 +115,50 @@ const RSBSAForm = () => {
     prevStep,
     goToStep,
     submitForm,
+    saveDraft,
     resetForm,
+    loadExistingEnrollment,
     formProgress,
-    canSubmit
+    canSubmit,
+    hasBackendErrors
   } = useRSBSAForm();
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Handle form submission with proper backend integration
+  const handleSubmit = async () => {
+    try {
+      const result = await submitForm(userId);
+      if (result.success) {
+        setShowSuccess(true);
+        setShowError(false);
+      } else {
+        setShowError(true);
+        setErrorMessage(result.error || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('❌ Submission error:', error);
+      setShowError(true);
+      setErrorMessage('An unexpected error occurred');
+    }
+  };
+
+  // Handle draft saving
+  const handleSaveDraft = async () => {
+    try {
+      const result = await saveDraft(userId);
+      if (result.success) {
+        // Show temporary success message for draft saving
+        console.log('✅ Draft saved successfully');
+      } else {
+        console.error('❌ Failed to save draft:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Draft save error:', error);
+    }
+  };
 
   // Updated step configuration (removed livelihood details step)
   const steps = [

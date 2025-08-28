@@ -17,55 +17,45 @@ import { rsbsaFormService, referenceDataService } from '../../api/rsbsaService';
  * - barangays
  */
 export const useRSBSAForm = () => {
-  // Form state based on database structure
+  // Form state based on database structure and API service
   const [formData, setFormData] = useState({
-    // RSBSA Enrollment (rsbsa_enrollments table)
-    enrollment: {
+    // Beneficiary Details (matches beneficiaryDetailsService structure)
+    beneficiaryDetails: {
       id: null,
       user_id: null,
-      farm_profile_id: null,
-      reference_code: '',
-      status: 'pending', // enum: pending, verifying, verified, rejected
-      submitted_at: null,
-      verified_at: null,
-      rejection_reason: null,
-      verified_by: null,
-      created_at: null,
-      updated_at: null
-    },
-
-    // Beneficiary Profile (beneficiary_profiles table)
-    beneficiaryProfile: {
-      id: null,
-      user_id: null,
-      RSBSA_NUMBER: null,
-      SYSTEM_GENERATED_RSBSA_NUMBER: null,
+      first_name: '',
+      last_name: '',
+      middle_name: '',
+      email: '',
+      contact_number: '',
       barangay: '',
       municipality: '',
       province: '',
       region: '',
-      contact_number: '',
+      address: '',
       birth_date: null,
       place_of_birth: '',
       civil_status: null, // enum: single, married, widowed, separated, divorced
       name_of_spouse: '',
-      highest_education: null, // enum: None, Pre-school, Elementary, Junior High School, Senior High School, Vocational, College, Post Graduate
+      highest_education: null,
       religion: '',
       pwd: false,
-      has_government_id: 'no', // enum: yes, no
+      has_government_id: 'no',
       gov_id_type: '',
       gov_id_number: '',
-      is_association_member: 'no', // enum: yes, no
+      is_association_member: 'no',
       association_name: '',
       mothers_maiden_name: '',
       is_household_head: false,
       household_head_name: '',
       emergency_contact_number: '',
+      profile_completion_status: 'pending',
+      data_source: 'self_registration',
       created_at: null,
       updated_at: null
     },
 
-    // Farm Profile (farm_profiles table)
+    // Farm Profile (matches farmProfileService structure)
     farmProfile: {
       id: null,
       beneficiary_id: null,
@@ -74,10 +64,10 @@ export const useRSBSAForm = () => {
       updated_at: null
     },
 
-    // Farm Parcels (farm_parcels table) - Array for multiple parcels
+    // Farm Parcels (matches farmParcelsService structure)
     farmParcels: [],
 
-    // Farmer Details (farmer_details table)
+    // Farmer Details (matches livelihoodDetailsService structure)
     farmerDetails: {
       id: null,
       farm_profile_id: null,
@@ -93,7 +83,7 @@ export const useRSBSAForm = () => {
       updated_at: null
     },
 
-    // Fisherfolk Details (fisherfolk_details table)
+    // Fisherfolk Details
     fisherfolkDetails: {
       id: null,
       farm_profile_id: null,
@@ -105,7 +95,7 @@ export const useRSBSAForm = () => {
       updated_at: null
     },
 
-    // Farmworker Details (farmworker_details table)
+    // Farmworker Details
     farmworkerDetails: {
       id: null,
       farm_profile_id: null,
@@ -117,7 +107,7 @@ export const useRSBSAForm = () => {
       updated_at: null
     },
 
-    // Agricultural Youth Details (agri_youth_details table)
+    // Agricultural Youth Details
     agriYouthDetails: {
       id: null,
       farm_profile_id: null,
@@ -136,13 +126,56 @@ export const useRSBSAForm = () => {
   const [errors, setErrors] = useState({});
   
   // Loading states
-  // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingExistingData, setIsLoadingExistingData] = useState(false);
+
+  // Backend integration states
+  const [submissionResult, setSubmissionResult] = useState(null);
+  const [existingEnrollment, setExistingEnrollment] = useState(null);
+  const [backendErrors, setBackendErrors] = useState({});
 
   // Form step management
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
+
+  // Load existing enrollment data from backend
+  const loadExistingEnrollment = useCallback(async (userId) => {
+    if (!userId) return;
+    
+    setIsLoadingExistingData(true);
+    try {
+      console.log('🔍 Loading existing enrollment for user:', userId);
+      const result = await rsbsaFormService.getCompleteRSBSAData(userId);
+      
+      if (result.success && result.data) {
+        console.log('✅ Existing enrollment found:', result.data);
+        setExistingEnrollment(result.data);
+        
+        // Populate form data with existing enrollment
+        setFormData(prevData => ({
+          ...prevData,
+          beneficiaryDetails: { ...prevData.beneficiaryDetails, ...result.data.beneficiaryDetails },
+          farmProfile: { ...prevData.farmProfile, ...result.data.farmProfile },
+          farmParcels: result.data.farmParcels || [],
+          farmerDetails: { ...prevData.farmerDetails, ...result.data.livelihoodDetails },
+          fisherfolkDetails: { ...prevData.fisherfolkDetails, ...result.data.livelihoodDetails },
+          farmworkerDetails: { ...prevData.farmworkerDetails, ...result.data.livelihoodDetails },
+          agriYouthDetails: { ...prevData.agriYouthDetails, ...result.data.livelihoodDetails }
+        }));
+        
+        localStorage.setItem('rsbsa_form_data', JSON.stringify(formData));
+      } else {
+        console.log('ℹ️ No existing enrollment found for user');
+      }
+    } catch (error) {
+      console.error('❌ Error loading existing enrollment:', error);
+      setBackendErrors(prev => ({ ...prev, loadError: 'Failed to load existing data' }));
+    } finally {
+      setIsLoadingExistingData(false);
+    }
+  }, [formData]);
 
   // Load form data from localStorage on component mount
   useEffect(() => {
@@ -150,10 +183,11 @@ export const useRSBSAForm = () => {
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
+        console.log('📦 Loading saved form data from localStorage:', parsedData);
         setFormData(prevData => ({ ...prevData, ...parsedData }));
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error loading saved form data:', error);
+        console.error('❌ Error loading saved form data:', error);
+        setBackendErrors(prev => ({ ...prev, localStorageError: 'Failed to load saved data' }));
       }
     }
   }, []);
@@ -226,53 +260,108 @@ export const useRSBSAForm = () => {
     }));
   }, []);
 
-  // Form validation
+  // Form validation with comprehensive error handling
   const validateForm = useCallback(() => {
+    console.log('🔍 Validating form data...');
     const newErrors = {};
 
-    // Validate beneficiary profile
-    const { beneficiaryProfile } = formData;
-    if (!beneficiaryProfile.barangay.trim()) {
-      newErrors['beneficiaryProfile.barangay'] = 'Barangay is required';
-    }
-    if (!beneficiaryProfile.municipality.trim()) {
-      newErrors['beneficiaryProfile.municipality'] = 'Municipality is required';
-    }
-    if (!beneficiaryProfile.contact_number.trim()) {
-      newErrors['beneficiaryProfile.contact_number'] = 'Contact number is required';
-    }
-    if (!beneficiaryProfile.birth_date) {
-      newErrors['beneficiaryProfile.birth_date'] = 'Birth date is required';
-    }
-    if (!beneficiaryProfile.civil_status) {
-      newErrors['beneficiaryProfile.civil_status'] = 'Civil status is required';
-    }
+    try {
+      // Validate beneficiary details
+      const { beneficiaryDetails } = formData;
+      if (!beneficiaryDetails.first_name?.trim()) {
+        newErrors['beneficiaryDetails.first_name'] = 'First name is required';
+      }
+      if (!beneficiaryDetails.last_name?.trim()) {
+        newErrors['beneficiaryDetails.last_name'] = 'Last name is required';
+      }
+      if (!beneficiaryDetails.barangay?.trim()) {
+        newErrors['beneficiaryDetails.barangay'] = 'Barangay is required';
+      }
+      if (!beneficiaryDetails.municipality?.trim()) {
+        newErrors['beneficiaryDetails.municipality'] = 'Municipality is required';
+      }
+      if (!beneficiaryDetails.province?.trim()) {
+        newErrors['beneficiaryDetails.province'] = 'Province is required';
+      }
+      if (!beneficiaryDetails.region?.trim()) {
+        newErrors['beneficiaryDetails.region'] = 'Region is required';
+      }
+      if (!beneficiaryDetails.contact_number?.trim()) {
+        newErrors['beneficiaryDetails.contact_number'] = 'Contact number is required';
+      }
 
-    // Validate farm profile
-    if (!formData.farmProfile.livelihood_category_id) {
-      newErrors['farmProfile.livelihood_category_id'] = 'Livelihood category is required';
-    }
+      // Validate farm profile
+      if (!formData.farmProfile.livelihood_category_id) {
+        newErrors['farmProfile.livelihood_category_id'] = 'Livelihood category is required';
+      }
 
-    // Validate at least one farm parcel
-    if (formData.farmParcels.length === 0) {
-      newErrors['farmParcels'] = 'At least one farm parcel is required';
-    } else {
-      // Validate each farm parcel
-      formData.farmParcels.forEach((parcel, index) => {
-        if (!parcel.barangay.trim()) {
-          newErrors[`farmParcels.${index}.barangay`] = 'Parcel barangay is required';
-        }
-        if (!parcel.tenure_type) {
-          newErrors[`farmParcels.${index}.tenure_type`] = 'Tenure type is required';
-        }
-        if (!parcel.farm_area || parcel.farm_area <= 0) {
-          newErrors[`farmParcels.${index}.farm_area`] = 'Farm area must be greater than 0';
-        }
-      });
-    }
+      // Validate at least one farm parcel
+      if (formData.farmParcels.length === 0) {
+        newErrors['farmParcels'] = 'At least one farm parcel is required';
+      } else {
+        // Validate each farm parcel
+        formData.farmParcels.forEach((parcel, index) => {
+          if (!parcel.barangay?.trim()) {
+            newErrors[`farmParcels.${index}.barangay`] = 'Parcel barangay is required';
+          }
+          if (!parcel.tenure_type) {
+            newErrors[`farmParcels.${index}.tenure_type`] = 'Tenure type is required';
+          }
+          if (!parcel.farm_area || parcel.farm_area <= 0) {
+            newErrors[`farmParcels.${index}.farm_area`] = 'Farm area must be greater than 0';
+          }
+        });
+      }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      // Validate livelihood-specific details based on category
+      const livelihoodCategoryId = formData.farmProfile.livelihood_category_id;
+      if (livelihoodCategoryId === 1) { // Farmer
+        const hasAnyFarmerActivity = 
+          formData.farmerDetails.is_rice || 
+          formData.farmerDetails.is_corn || 
+          formData.farmerDetails.is_other_crops ||
+          formData.farmerDetails.is_livestock ||
+          formData.farmerDetails.is_poultry;
+        
+        if (!hasAnyFarmerActivity) {
+          newErrors['farmerDetails'] = 'Please select at least one farming activity';
+        }
+      } else if (livelihoodCategoryId === 2) { // Fisherfolk
+        const hasAnyFishingActivity = 
+          formData.fisherfolkDetails.is_fish_capture || 
+          formData.fisherfolkDetails.is_aquaculture || 
+          formData.fisherfolkDetails.is_fish_processing;
+        
+        if (!hasAnyFishingActivity) {
+          newErrors['fisherfolkDetails'] = 'Please select at least one fishing activity';
+        }
+      } else if (livelihoodCategoryId === 3) { // Farmworker
+        const hasAnyFarmworkerActivity = 
+          formData.farmworkerDetails.is_land_preparation || 
+          formData.farmworkerDetails.is_cultivation || 
+          formData.farmworkerDetails.is_harvesting;
+        
+        if (!hasAnyFarmworkerActivity) {
+          newErrors['farmworkerDetails'] = 'Please select at least one farmworker activity';
+        }
+      } else if (livelihoodCategoryId === 4) { // Agri Youth
+        if (!formData.agriYouthDetails.is_agri_youth) {
+          newErrors['agriYouthDetails.is_agri_youth'] = 'Please confirm you are an Agri-Youth';
+        }
+      }
+
+      setErrors(newErrors);
+      setBackendErrors({}); // Clear backend errors on successful validation
+      
+      const isValid = Object.keys(newErrors).length === 0;
+      console.log(isValid ? '✅ Form validation passed' : '❌ Form validation failed:', newErrors);
+      
+      return isValid;
+    } catch (error) {
+      console.error('❌ Error during form validation:', error);
+      setBackendErrors(prev => ({ ...prev, validationError: 'Validation error occurred' }));
+      return false;
+    }
   }, [formData]);
 
   // Navigate to next step
@@ -296,68 +385,110 @@ export const useRSBSAForm = () => {
     }
   }, [totalSteps]);
 
-  // Submit form
-  const submitForm = useCallback(async () => {
+  // Submit complete form to backend
+  const submitForm = useCallback(async (userId) => {
+    console.log('🚀 Starting form submission process...');
+    
     if (!validateForm()) {
-      return false;
+      console.error('❌ Form validation failed, cannot submit');
+      return { success: false, error: 'Form validation failed' };
+    }
+
+    if (!userId) {
+      console.error('❌ User ID is required for submission');
+      setBackendErrors(prev => ({ ...prev, submissionError: 'User ID is required' }));
+      return { success: false, error: 'User ID is required' };
     }
 
     setIsSubmitting(true);
+    setBackendErrors({});
+    
     try {
-      // Here you would make API call to submit form
-      // For now, we'll simulate the submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update enrollment status
-      setFormData(prevData => ({
-        ...prevData,
-        enrollment: {
-          ...prevData.enrollment,
-          status: 'verifying',
-          submitted_at: new Date().toISOString(),
-          reference_code: `RSBSA-${Date.now()}`
-        }
-      }));
-
-      // Clear localStorage after successful submission
-      localStorage.removeItem('rsbsa_form_data');
+      console.log('📤 Submitting form data to backend:', formData);
       
-      return true;
+      // Submit complete form using the rsbsaFormService
+      const result = await rsbsaFormService.submitCompleteForm(formData, userId);
+      
+      if (result.success) {
+        console.log('✅ Form submitted successfully:', result.data);
+        setSubmissionResult(result);
+        
+        // Clear localStorage after successful submission
+        localStorage.removeItem('rsbsa_form_data');
+        
+        return { success: true, data: result.data };
+      } else {
+        console.error('❌ Form submission failed:', result.error);
+        setBackendErrors(prev => ({ 
+          ...prev, 
+          submissionError: result.error,
+          validationErrors: result.validationErrors 
+        }));
+        
+        return { success: false, error: result.error, details: result.details };
+      }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Form submission error:', error);
-      return false;
+      console.error('❌ Unexpected error during form submission:', error);
+      setBackendErrors(prev => ({ ...prev, submissionError: 'Unexpected error occurred' }));
+      return { success: false, error: 'Unexpected error occurred' };
     } finally {
       setIsSubmitting(false);
     }
   }, [formData, validateForm]);
 
-  // Reset form
+  // Save draft to backend
+  const saveDraft = useCallback(async (userId) => {
+    console.log('💾 Saving form as draft...');
+    
+    if (!userId) {
+      console.error('❌ User ID is required for saving draft');
+      setBackendErrors(prev => ({ ...prev, draftError: 'User ID is required' }));
+      return { success: false, error: 'User ID is required' };
+    }
+
+    setIsSavingDraft(true);
+    setBackendErrors({});
+    
+    try {
+      console.log('💾 Saving draft to backend:', formData);
+      
+      const result = await rsbsaFormService.saveDraft(formData, userId);
+      
+      if (result.success) {
+        console.log('✅ Draft saved successfully:', result.data);
+        return { success: true, data: result.data };
+      } else {
+        console.error('❌ Failed to save draft:', result.error);
+        setBackendErrors(prev => ({ ...prev, draftError: result.error }));
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      console.error('❌ Unexpected error while saving draft:', error);
+      setBackendErrors(prev => ({ ...prev, draftError: 'Failed to save draft' }));
+      return { success: false, error: 'Failed to save draft' };
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [formData]);
+
+  // Reset form with comprehensive cleanup
   const resetForm = useCallback(() => {
-    setFormData({
-      enrollment: {
+    console.log('🔄 Resetting form to initial state...');
+    
+    const initialFormData = {
+      beneficiaryDetails: {
         id: null,
         user_id: null,
-        farm_profile_id: null,
-        reference_code: '',
-        status: 'pending',
-        submitted_at: null,
-        verified_at: null,
-        rejection_reason: null,
-        verified_by: null,
-        created_at: null,
-        updated_at: null
-      },
-      beneficiaryProfile: {
-        id: null,
-        user_id: null,
-        RSBSA_NUMBER: null,
-        SYSTEM_GENERATED_RSBSA_NUMBER: null,
+        first_name: '',
+        last_name: '',
+        middle_name: '',
+        email: '',
+        contact_number: '',
         barangay: '',
         municipality: '',
         province: '',
         region: '',
-        contact_number: '',
+        address: '',
         birth_date: null,
         place_of_birth: '',
         civil_status: null,
@@ -374,6 +505,8 @@ export const useRSBSAForm = () => {
         is_household_head: false,
         household_head_name: '',
         emergency_contact_number: '',
+        profile_completion_status: 'pending',
+        data_source: 'self_registration',
         created_at: null,
         updated_at: null
       },
@@ -431,49 +564,89 @@ export const useRSBSAForm = () => {
         created_at: null,
         updated_at: null
       }
-    });
+    };
+
+    setFormData(initialFormData);
     setErrors({});
+    setBackendErrors({});
+    setSubmissionResult(null);
+    setExistingEnrollment(null);
     setCurrentStep(1);
     localStorage.removeItem('rsbsa_form_data');
+    
+    console.log('✅ Form reset completed');
   }, []);
 
-  // Get form completion percentage
+  // Get form completion percentage with enhanced calculation
   const getFormProgress = useCallback(() => {
-    const totalFields = 15; // Approximate number of required fields
+    const totalFields = 20; // Updated number of required fields
     let completedFields = 0;
 
-    // Check beneficiary profile completion
-    const { beneficiaryProfile } = formData;
-    if (beneficiaryProfile.barangay) completedFields++;
-    if (beneficiaryProfile.municipality) completedFields++;
-    if (beneficiaryProfile.contact_number) completedFields++;
-    if (beneficiaryProfile.birth_date) completedFields++;
-    if (beneficiaryProfile.civil_status) completedFields++;
+    try {
+      // Check beneficiary details completion
+      const { beneficiaryDetails } = formData;
+      if (beneficiaryDetails.first_name?.trim()) completedFields++;
+      if (beneficiaryDetails.last_name?.trim()) completedFields++;
+      if (beneficiaryDetails.barangay?.trim()) completedFields++;
+      if (beneficiaryDetails.municipality?.trim()) completedFields++;
+      if (beneficiaryDetails.province?.trim()) completedFields++;
+      if (beneficiaryDetails.region?.trim()) completedFields++;
+      if (beneficiaryDetails.contact_number?.trim()) completedFields++;
 
-    // Check farm profile completion
-    if (formData.farmProfile.livelihood_category_id) completedFields++;
+      // Check farm profile completion
+      if (formData.farmProfile.livelihood_category_id) completedFields++;
 
-    // Check farm parcels completion
-    if (formData.farmParcels.length > 0) {
-      completedFields++;
-      // Check if first parcel is properly filled
-      const firstParcel = formData.farmParcels[0];
-      if (firstParcel && firstParcel.barangay && firstParcel.tenure_type && firstParcel.farm_area > 0) {
-        completedFields += 3;
+      // Check farm parcels completion
+      if (formData.farmParcels.length > 0) {
+        completedFields++;
+        // Check if first parcel is properly filled
+        const firstParcel = formData.farmParcels[0];
+        if (firstParcel && firstParcel.barangay && firstParcel.tenure_type && firstParcel.farm_area > 0) {
+          completedFields += 3;
+        }
       }
-    }
 
-    return Math.round((completedFields / totalFields) * 100);
+      // Check livelihood-specific completion
+      const livelihoodCategoryId = formData.farmProfile.livelihood_category_id;
+      if (livelihoodCategoryId === 1) { // Farmer
+        const hasActivity = formData.farmerDetails.is_rice || formData.farmerDetails.is_corn || 
+                           formData.farmerDetails.is_other_crops || formData.farmerDetails.is_livestock || 
+                           formData.farmerDetails.is_poultry;
+        if (hasActivity) completedFields++;
+      } else if (livelihoodCategoryId === 2) { // Fisherfolk
+        const hasActivity = formData.fisherfolkDetails.is_fish_capture || 
+                           formData.fisherfolkDetails.is_aquaculture || 
+                           formData.fisherfolkDetails.is_fish_processing;
+        if (hasActivity) completedFields++;
+      } else if (livelihoodCategoryId === 3) { // Farmworker
+        const hasActivity = formData.farmworkerDetails.is_land_preparation || 
+                           formData.farmworkerDetails.is_cultivation || 
+                           formData.farmworkerDetails.is_harvesting;
+        if (hasActivity) completedFields++;
+      } else if (livelihoodCategoryId === 4) { // Agri Youth
+        if (formData.agriYouthDetails.is_agri_youth) completedFields++;
+      }
+
+      return Math.round((completedFields / totalFields) * 100);
+    } catch (error) {
+      console.error('❌ Error calculating form progress:', error);
+      return 0;
+    }
   }, [formData]);
 
   return {
     // State
     formData,
     errors,
+    backendErrors,
     isLoading,
     isSubmitting,
+    isSavingDraft,
+    isLoadingExistingData,
     currentStep,
     totalSteps,
+    submissionResult,
+    existingEnrollment,
 
     // Actions
     updateField,
@@ -485,12 +658,15 @@ export const useRSBSAForm = () => {
     prevStep,
     goToStep,
     submitForm,
+    saveDraft,
     resetForm,
+    loadExistingEnrollment,
 
     // Computed values
     formProgress: getFormProgress(),
-    isValid: Object.keys(errors).length === 0,
-    canSubmit: Object.keys(errors).length === 0 && formData.farmParcels.length > 0
+    isValid: Object.keys(errors).length === 0 && Object.keys(backendErrors).length === 0,
+    canSubmit: Object.keys(errors).length === 0 && formData.farmParcels.length > 0 && !isSubmitting,
+    hasBackendErrors: Object.keys(backendErrors).length > 0
   };
 };
 
