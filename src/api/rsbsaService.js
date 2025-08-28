@@ -184,9 +184,12 @@ export const rsbsaEnrollmentService = {
   // Get enrollment by ID
   async getEnrollment(enrollmentId) {
     try {
+      console.log('🔍 Fetching enrollment by ID:', enrollmentId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.ENROLLMENTS}/${enrollmentId}`);
+      console.log('✅ Enrollment fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Enrollment', error, { enrollmentId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch enrollment',
@@ -198,9 +201,12 @@ export const rsbsaEnrollmentService = {
   // Get enrollment by user ID
   async getEnrollmentByUserId(userId) {
     try {
+      console.log('🔍 Fetching enrollment by user ID:', userId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.ENROLLMENTS}/user/${userId}`);
+      console.log('✅ User enrollment fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Enrollment By User ID', error, { userId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch user enrollment',
@@ -212,9 +218,12 @@ export const rsbsaEnrollmentService = {
   // Get enrollment by beneficiary ID
   async getEnrollmentByBeneficiaryId(beneficiaryId) {
     try {
+      console.log('🔍 Fetching enrollment by beneficiary ID:', beneficiaryId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.ENROLLMENTS}/beneficiary/${beneficiaryId}`);
+      console.log('✅ Beneficiary enrollment fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Enrollment By Beneficiary ID', error, { beneficiaryId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch beneficiary enrollment',
@@ -226,9 +235,12 @@ export const rsbsaEnrollmentService = {
   // Update enrollment
   async updateEnrollment(enrollmentId, updateData) {
     try {
+      console.log('🔄 Updating enrollment:', { enrollmentId, updateData });
       const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.ENROLLMENTS}/${enrollmentId}`, updateData);
+      console.log('✅ Enrollment updated successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Update Enrollment', error, { enrollmentId, updateData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to update enrollment',
@@ -254,9 +266,12 @@ export const rsbsaEnrollmentService = {
   // Submit enrollment for review
   async submitEnrollment(enrollmentId) {
     try {
+      console.log('📤 Submitting enrollment for review:', enrollmentId);
       const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.ENROLLMENTS}/${enrollmentId}/submit`);
+      console.log('✅ Enrollment submitted successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Submit Enrollment', error, { enrollmentId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to submit enrollment',
@@ -336,9 +351,12 @@ export const beneficiaryDetailsService = {
   // Get details by ID
   async getDetails(detailsId) {
     try {
+      console.log('🔍 Fetching beneficiary details by ID:', detailsId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.BENEFICIARY_DETAILS}/${detailsId}`);
+      console.log('✅ Beneficiary details fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Beneficiary Details', error, { detailsId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch beneficiary details',
@@ -350,9 +368,12 @@ export const beneficiaryDetailsService = {
   // Get details by user ID
   async getDetailsByUserId(userId) {
     try {
+      console.log('🔍 Fetching beneficiary details by user ID:', userId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.BENEFICIARY_DETAILS}/user/${userId}`);
+      console.log('✅ User beneficiary details fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Beneficiary Details By User ID', error, { userId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch user details',
@@ -364,9 +385,12 @@ export const beneficiaryDetailsService = {
   // Update details
   async updateDetails(detailsId, updateData) {
     try {
+      console.log('🔄 Updating beneficiary details:', { detailsId, updateData });
       const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.BENEFICIARY_DETAILS}/${detailsId}`, updateData);
+      console.log('✅ Beneficiary details updated successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Update Beneficiary Details', error, { detailsId, updateData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to update beneficiary details',
@@ -397,9 +421,12 @@ export const farmProfileService = {
   // Create farm profile
   async createProfile(profileData) {
     try {
+      console.log('🚀 Creating farm profile:', profileData);
       const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARM_PROFILES, profileData);
+      console.log('✅ Farm profile created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Create Farm Profile', error, { profileData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to create farm profile',
@@ -411,9 +438,12 @@ export const farmProfileService = {
   // Get farm profile by ID
   async getProfile(profileId) {
     try {
+      console.log('🔍 Fetching farm profile by ID:', profileId);
       const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.FARM_PROFILES}/${profileId}`);
+      console.log('✅ Farm profile fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Farm Profile', error, { profileId });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch farm profile',
@@ -444,9 +474,12 @@ export const farmParcelsService = {
   // Create farm parcel
   async createParcel(parcelData) {
     try {
+      console.log('🚀 Creating farm parcel:', parcelData);
       const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARM_PARCELS, parcelData);
+      console.log('✅ Farm parcel created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Create Farm Parcel', error, { parcelData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to create farm parcel',
@@ -519,9 +552,12 @@ export const livelihoodDetailsService = {
   // Farmer details
   async createFarmerDetails(detailsData) {
     try {
+      console.log('🚀 Creating farmer details:', detailsData);
       const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARMER_DETAILS, detailsData);
+      console.log('✅ Farmer details created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Create Farmer Details', error, { detailsData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to create farmer details',
@@ -546,9 +582,12 @@ export const livelihoodDetailsService = {
   // Fisherfolk details
   async createFisherfolkDetails(detailsData) {
     try {
+      console.log('🚀 Creating fisherfolk details:', detailsData);
       const response = await axiosInstance.post(RSBSA_ENDPOINTS.FISHERFOLK_DETAILS, detailsData);
+      console.log('✅ Fisherfolk details created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Create Fisherfolk Details', error, { detailsData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to create fisherfolk details',
@@ -573,9 +612,12 @@ export const livelihoodDetailsService = {
   // Farmworker details
   async createFarmworkerDetails(detailsData) {
     try {
+      console.log('🚀 Creating farmworker details:', detailsData);
       const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARMWORKER_DETAILS, detailsData);
+      console.log('✅ Farmworker details created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Create Farmworker Details', error, { detailsData });
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to create farmworker details',
@@ -632,9 +674,12 @@ export const referenceDataService = {
   // Get livelihood categories
   async getLivelihoodCategories() {
     try {
+      console.log('🔍 Fetching livelihood categories...');
       const response = await axiosInstance.get(RSBSA_ENDPOINTS.LIVELIHOOD_CATEGORIES);
+      console.log('✅ Livelihood categories fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Livelihood Categories', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch livelihood categories',
@@ -646,9 +691,12 @@ export const referenceDataService = {
   // Get commodities
   async getCommodities() {
     try {
+      console.log('🔍 Fetching commodities...');
       const response = await axiosInstance.get(RSBSA_ENDPOINTS.COMMODITIES);
+      console.log('✅ Commodities fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Commodities', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch commodities',
@@ -660,9 +708,12 @@ export const referenceDataService = {
   // Get barangays
   async getBarangays() {
     try {
+      console.log('🔍 Fetching barangays...');
       const response = await axiosInstance.get(RSBSA_ENDPOINTS.BARANGAYS);
+      console.log('✅ Barangays fetched successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      logError('Get Barangays', error);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch barangays',
