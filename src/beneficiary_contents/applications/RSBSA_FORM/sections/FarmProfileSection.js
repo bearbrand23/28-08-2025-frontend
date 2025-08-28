@@ -287,12 +287,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="Rice Production"
                           description="Cultivating rice varieties"
-                          checked={formData.farmerDetails?.is_rice || false}
+                          checked={formData.farmerActivities?.rice || false}
                           onChange={() =>
                             updateField(
-                              'farmerDetails',
-                              'is_rice',
-                              !formData.farmerDetails?.is_rice
+                              'farmerActivities',
+                              'rice',
+                              !formData.farmerActivities?.rice
                             )
                           }
                         />
@@ -301,12 +301,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="Corn Production"
                           description="Growing corn/maize crops"
-                          checked={formData.farmerDetails?.is_corn || false}
+                          checked={formData.farmerActivities?.corn || false}
                           onChange={() =>
                             updateField(
-                              'farmerDetails',
-                              'is_corn',
-                              !formData.farmerDetails?.is_corn
+                              'farmerActivities',
+                              'corn',
+                              !formData.farmerActivities?.corn
                             )
                           }
                         />
@@ -315,12 +315,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="Other Crops"
                           description="Vegetables, fruits, root crops"
-                          checked={formData.farmerDetails?.is_other_crops || false}
+                          checked={formData.farmerActivities?.other_crops || false}
                           onChange={() =>
                             updateField(
-                              'farmerDetails',
-                              'is_other_crops',
-                              !formData.farmerDetails?.is_other_crops
+                              'farmerActivities',
+                              'other_crops',
+                              !formData.farmerActivities?.other_crops
                             )
                           }
                         />
@@ -336,12 +336,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                           <SwitchField
                             label="Livestock Raising"
                             description="Cattle, goats, swine"
-                            checked={formData.farmerDetails?.is_livestock || false}
+                            checked={formData.farmerActivities?.livestock || false}
                             onChange={() =>
                               updateField(
-                                'farmerDetails',
-                                'is_livestock',
-                                !formData.farmerDetails?.is_livestock
+                                'farmerActivities',
+                                'livestock',
+                                !formData.farmerActivities?.livestock
                               )
                             }
                           />
@@ -350,12 +350,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                           <SwitchField
                             label="Poultry Raising"
                             description="Chickens, ducks"
-                            checked={formData.farmerDetails?.is_poultry || false}
+                            checked={formData.farmerActivities?.poultry || false}
                             onChange={() =>
                               updateField(
-                                'farmerDetails',
-                                'is_poultry',
-                                !formData.farmerDetails?.is_poultry
+                                'farmerActivities',
+                                'poultry',
+                                !formData.farmerActivities?.poultry
                               )
                             }
                           />
@@ -376,12 +376,12 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="Fish Capture"
                           description="Ocean, river, lake fishing"
-                          checked={formData.fisherfolkDetails?.is_fish_capture || false}
+                          checked={formData.fisherfolkActivities?.fish_capture || false}
                           onChange={() =>
                             updateField(
-                              'fisherfolkDetails',
-                              'is_fish_capture',
-                              !formData.fisherfolkDetails?.is_fish_capture
+                              'fisherfolkActivities',
+                              'fish_capture',
+                              !formData.fisherfolkActivities?.fish_capture
                             )
                           }
                         />
@@ -390,26 +390,54 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="Aquaculture"
                           description="Fish farming"
-                          checked={formData.fisherfolkDetails?.is_aquaculture || false}
+                          checked={formData.fisherfolkActivities?.aquaculture || false}
                           onChange={() =>
                             updateField(
-                              'fisherfolkDetails',
-                              'is_aquaculture',
-                              !formData.fisherfolkDetails?.is_aquaculture
+                              'fisherfolkActivities',
+                              'aquaculture',
+                              !formData.fisherfolkActivities?.aquaculture
                             )
                           }
                         />
                       </Grid>
                       <Grid item xs={12} md={4}>
                         <SwitchField
-                          label="Fish Processing"
-                          description="Drying, smoking, packaging"
-                          checked={formData.fisherfolkDetails?.is_fish_processing || false}
+                          label="Gleaning"
+                          description="Collecting shellfish, seaweed"
+                          checked={formData.fisherfolkActivities?.gleaning || false}
                           onChange={() =>
                             updateField(
-                              'fisherfolkDetails',
-                              'is_fish_processing',
-                              !formData.fisherfolkDetails?.is_fish_processing
+                              'fisherfolkActivities',
+                              'gleaning',
+                              !formData.fisherfolkActivities?.gleaning
+                            )
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <SwitchField
+                          label="Fish Processing"
+                          description="Drying, smoking, packaging"
+                          checked={formData.fisherfolkActivities?.fish_processing || false}
+                          onChange={() =>
+                            updateField(
+                              'fisherfolkActivities',
+                              'fish_processing',
+                              !formData.fisherfolkActivities?.fish_processing
+                            )
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <SwitchField
+                          label="Fish Vending"
+                          description="Selling fish and fish products"
+                          checked={formData.fisherfolkActivities?.fish_vending || false}
+                          onChange={() =>
+                            updateField(
+                              'fisherfolkActivities',
+                              'fish_vending',
+                              !formData.fisherfolkActivities?.fish_vending
                             )
                           }
                         />
@@ -425,44 +453,58 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                       Farm Work Specialization
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <SwitchField
                           label="Land Preparation"
                           description="Plowing, tilling, soil preparation"
-                          checked={formData.farmworkerDetails?.is_land_preparation || false}
+                          checked={formData.farmworkerActivities?.land_preparation || false}
                           onChange={() =>
                             updateField(
-                              'farmworkerDetails',
-                              'is_land_preparation',
-                              !formData.farmworkerDetails?.is_land_preparation
+                              'farmworkerActivities',
+                              'land_preparation',
+                              !formData.farmworkerActivities?.land_preparation
                             )
                           }
                         />
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
+                        <SwitchField
+                          label="Planting"
+                          description="Seed/seedling planting"
+                          checked={formData.farmworkerActivities?.planting || false}
+                          onChange={() =>
+                            updateField(
+                              'farmworkerActivities',
+                              'planting',
+                              !formData.farmworkerActivities?.planting
+                            )
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
                         <SwitchField
                           label="Cultivation"
-                          description="Planting, weeding, crop care"
-                          checked={formData.farmworkerDetails?.is_cultivation || false}
+                          description="Weeding, fertilizing, crop care"
+                          checked={formData.farmworkerActivities?.cultivation || false}
                           onChange={() =>
                             updateField(
-                              'farmworkerDetails',
-                              'is_cultivation',
-                              !formData.farmworkerDetails?.is_cultivation
+                              'farmworkerActivities',
+                              'cultivation',
+                              !formData.farmworkerActivities?.cultivation
                             )
                           }
                         />
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <SwitchField
                           label="Harvesting"
                           description="Crop gathering and processing"
-                          checked={formData.farmworkerDetails?.is_harvesting || false}
+                          checked={formData.farmworkerActivities?.harvesting || false}
                           onChange={() =>
                             updateField(
-                              'farmworkerDetails',
-                              'is_harvesting',
-                              !formData.farmworkerDetails?.is_harvesting
+                              'farmworkerActivities',
+                              'harvesting',
+                              !formData.farmworkerActivities?.harvesting
                             )
                           }
                         />
@@ -482,29 +524,29 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                         <SwitchField
                           label="I am an Agri-Youth"
                           description="Youth (18-30) involved in agriculture"
-                          checked={formData.agriYouthDetails?.is_agri_youth || false}
+                          checked={formData.agriYouthActivities?.is_agri_youth || false}
                           onChange={() =>
                             updateField(
-                              'agriYouthDetails',
+                              'agriYouthActivities',
                               'is_agri_youth',
-                              !formData.agriYouthDetails?.is_agri_youth
+                              !formData.agriYouthActivities?.is_agri_youth
                             )
                           }
                         />
                       </Grid>
                       
-                      {formData.agriYouthDetails?.is_agri_youth && (
+                      {formData.agriYouthActivities?.is_agri_youth && (
                         <>
                           <Grid item xs={12} md={6}>
                             <SwitchField
                               label="Part of Farming Household"
                               description="Member of a farming family"
-                              checked={formData.agriYouthDetails?.is_part_of_farming_household || false}
+                              checked={formData.agriYouthActivities?.is_part_of_farming_household || false}
                               onChange={() =>
                                 updateField(
-                                  'agriYouthDetails',
+                                  'agriYouthActivities',
                                   'is_part_of_farming_household',
-                                  !formData.agriYouthDetails?.is_part_of_farming_household
+                                  !formData.agriYouthActivities?.is_part_of_farming_household
                                 )
                               }
                             />
@@ -513,12 +555,40 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                             <SwitchField
                               label="Formal Agricultural Course"
                               description="Enrolled in formal agricultural education"
-                              checked={formData.agriYouthDetails?.is_formal_agri_course || false}
+                              checked={formData.agriYouthActivities?.is_formal_agri_course || false}
                               onChange={() =>
                                 updateField(
-                                  'agriYouthDetails',
+                                  'agriYouthActivities',
                                   'is_formal_agri_course',
-                                  !formData.agriYouthDetails?.is_formal_agri_course
+                                  !formData.agriYouthActivities?.is_formal_agri_course
+                                )
+                              }
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <SwitchField
+                              label="Non-formal Agricultural Course"
+                              description="Training, workshops, seminars"
+                              checked={formData.agriYouthActivities?.is_nonformal_agri_course || false}
+                              onChange={() =>
+                                updateField(
+                                  'agriYouthActivities',
+                                  'is_nonformal_agri_course',
+                                  !formData.agriYouthActivities?.is_nonformal_agri_course
+                                )
+                              }
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <SwitchField
+                              label="Agricultural Program Participant"
+                              description="Government or NGO programs"
+                              checked={formData.agriYouthActivities?.is_agri_program_participant || false}
+                              onChange={() =>
+                                updateField(
+                                  'agriYouthActivities',
+                                  'is_agri_program_participant',
+                                  !formData.agriYouthActivities?.is_agri_program_participant
                                 )
                               }
                             />
@@ -527,7 +597,7 @@ const FarmProfileSection = ({ formData, errors, updateField }) => {
                       )}
                     </Grid>
 
-                    {formData.agriYouthDetails?.is_agri_youth && (
+                    {formData.agriYouthActivities?.is_agri_youth && (
                       <Alert severity="success" sx={{ mt: 3 }}>
                         <CheckCircleIcon fontSize="small" sx={{ mr: 1 }} />
                         Welcome, Agri-Youth! 🌱 You're the future of agriculture.

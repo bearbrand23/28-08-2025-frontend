@@ -19,38 +19,73 @@ import { rsbsaFormService, referenceDataService } from '../../api/rsbsaService';
 export const useRSBSAForm = () => {
   // Form state based on database structure and API service
   const [formData, setFormData] = useState({
-    // Beneficiary Details (matches beneficiaryDetailsService structure)
+    // Beneficiary Details (matches actual database structure)
     beneficiaryDetails: {
       id: null,
       user_id: null,
-      first_name: '',
-      last_name: '',
-      middle_name: '',
-      email: '',
-      contact_number: '',
+      
+      // RSBSA INFORMATION & VERIFICATION
+      system_generated_rsbsa_number: null,
+      manual_rsbsa_number: null,
+      rsbsa_verification_status: 'not_verified',
+      rsbsa_verification_notes: null,
+      rsbsa_verified_at: null,
+      rsbsa_verified_by: null,
+
+      // LOCATION INFORMATION  
       barangay: '',
-      municipality: '',
-      province: '',
-      region: '',
-      address: '',
+      municipality: 'Opol',
+      province: 'Misamis Oriental',
+      region: 'Region X (Northern Mindanao)',
+
+      // CONTACT INFORMATION
+      contact_number: '',
+      emergency_contact_number: '',
+
+      // PERSONAL INFORMATION
       birth_date: null,
       place_of_birth: '',
-      civil_status: null, // enum: single, married, widowed, separated, divorced
+      sex: null, // male, female - CRITICAL MISSING FIELD
+      civil_status: null, // single, married, widowed, separated, divorced
       name_of_spouse: '',
-      highest_education: null,
+
+      // EDUCATIONAL & DEMOGRAPHIC INFORMATION
+      highest_education: null, // None, Pre-school, Elementary, Junior High School, Senior High School, Vocational, College, Post Graduate
       religion: '',
-      pwd: false,
+      is_pwd: false,
+
+      // GOVERNMENT ID INFORMATION
       has_government_id: 'no',
       gov_id_type: '',
       gov_id_number: '',
+
+      // ASSOCIATION & ORGANIZATION MEMBERSHIP
       is_association_member: 'no',
       association_name: '',
+
+      // HOUSEHOLD INFORMATION
       mothers_maiden_name: '',
       is_household_head: false,
       household_head_name: '',
-      emergency_contact_number: '',
+
+      // PROFILE COMPLETION & VERIFICATION SYSTEM
       profile_completion_status: 'pending',
+      is_profile_verified: false,
+      verification_notes: null,
+      profile_verified_at: null,
+      profile_verified_by: null,
+      
+      // INTERVIEW TRACKING
+      interview_status: 'pending',
+      interviewed_at: null,
+      interviewed_by: null,
+      interview_notes: null,
+      
+      // DATA SOURCE & AUDIT TRACKING
       data_source: 'self_registration',
+      last_updated_by_beneficiary: null,
+      completion_tracking: null,
+      
       created_at: null,
       updated_at: null
     },
@@ -64,59 +99,68 @@ export const useRSBSAForm = () => {
       updated_at: null
     },
 
-    // Farm Parcels (matches farmParcelsService structure)
+    // Farm Parcels (updated to match database structure)
     farmParcels: [],
 
-    // Farmer Details (matches livelihoodDetailsService structure)
-    farmerDetails: {
+    // NEW STRUCTURE: Beneficiary Livelihoods (many-to-many relationship)
+    beneficiaryLivelihoods: [],
+
+    // Farmer Activities (matches farmer_activities table)
+    farmerActivities: {
       id: null,
-      farm_profile_id: null,
-      is_rice: false,
-      is_corn: false,
-      is_other_crops: false,
-      other_crops_description: '',
-      is_livestock: false,
-      livestock_description: '',
-      is_poultry: false,
-      poultry_description: '',
+      beneficiary_livelihood_id: null,
+      rice: false,
+      corn: false,
+      other_crops: false,
+      other_crops_specify: '',
+      livestock: false,
+      livestock_specify: '',
+      poultry: false,
+      poultry_specify: '',
       created_at: null,
       updated_at: null
     },
 
-    // Fisherfolk Details
-    fisherfolkDetails: {
+    // Fisherfolk Activities (matches fisherfolk_activities table)
+    fisherfolkActivities: {
       id: null,
-      farm_profile_id: null,
-      is_fish_capture: false,
-      is_aquaculture: false,
-      is_fish_processing: false,
-      other_fishing_description: '',
+      beneficiary_livelihood_id: null,
+      fish_capture: false,
+      aquaculture: false,
+      gleaning: false, // NEW ACTIVITY
+      fish_processing: false,
+      fish_vending: false, // NEW ACTIVITY
+      others: false,
+      others_specify: '',
       created_at: null,
       updated_at: null
     },
 
-    // Farmworker Details
-    farmworkerDetails: {
+    // Farmworker Activities (matches farmworker_activities table)
+    farmworkerActivities: {
       id: null,
-      farm_profile_id: null,
-      is_land_preparation: false,
-      is_cultivation: false,
-      is_harvesting: false,
-      other_work_description: '',
+      beneficiary_livelihood_id: null,
+      land_preparation: false,
+      planting: false, // NEW ACTIVITY (separate from cultivation)
+      cultivation: false,
+      harvesting: false,
+      others: false,
+      others_specify: '',
       created_at: null,
       updated_at: null
     },
 
-    // Agricultural Youth Details
-    agriYouthDetails: {
+    // Agri Youth Activities (matches proposed agri_youth_activities table)
+    agriYouthActivities: {
       id: null,
-      farm_profile_id: null,
+      beneficiary_livelihood_id: null,
       is_agri_youth: false,
       is_part_of_farming_household: false,
       is_formal_agri_course: false,
       is_nonformal_agri_course: false,
       is_agri_program_participant: false,
-      other_involvement_description: '',
+      others: false,
+      others_specify: '',
       created_at: null,
       updated_at: null
     }
@@ -217,20 +261,27 @@ export const useRSBSAForm = () => {
     }
   }, [errors]);
 
-  // Add new farm parcel
+  // Add new farm parcel (updated to match database structure)
   const addFarmParcel = useCallback(() => {
     const newParcel = {
       id: Date.now(), // Temporary ID for frontend
       farm_profile_id: null,
+      sector_id: null, // MISSING FIELD - required
       parcel_number: '',
       barangay: '',
+      farm_area: 0,
+      
+      // Tenure / Ownership
       tenure_type: null, // enum: registered_owner, tenant, lessee
+      landowner_name: '', // MISSING FIELD
       ownership_document_number: '',
+      
+      // Legal and classification
       is_ancestral_domain: false,
       is_agrarian_reform_beneficiary: false,
-      farm_type: null, // enum: irrigated, rainfed_upland, rainfed_lowland
+      farm_type: null, // enum: irrigated, rainfed upland, rainfed lowland (note: space in enum)
       is_organic_practitioner: false,
-      farm_area: 0,
+      
       remarks: '',
       created_at: null,
       updated_at: null
@@ -266,17 +317,24 @@ export const useRSBSAForm = () => {
     const newErrors = {};
 
     try {
-      // Validate beneficiary details
+      // Validate beneficiary details (updated for new structure)
       const { beneficiaryDetails } = formData;
-      if (!beneficiaryDetails.first_name?.trim()) {
-        newErrors['beneficiaryDetails.first_name'] = 'First name is required';
-      }
-      if (!beneficiaryDetails.last_name?.trim()) {
-        newErrors['beneficiaryDetails.last_name'] = 'Last name is required';
-      }
+      
+      // CRITICAL REQUIRED FIELDS
       if (!beneficiaryDetails.barangay?.trim()) {
         newErrors['beneficiaryDetails.barangay'] = 'Barangay is required';
       }
+      if (!beneficiaryDetails.contact_number?.trim()) {
+        newErrors['beneficiaryDetails.contact_number'] = 'Contact number is required';
+      }
+      if (!beneficiaryDetails.birth_date) {
+        newErrors['beneficiaryDetails.birth_date'] = 'Birth date is required';
+      }
+      if (!beneficiaryDetails.sex) {
+        newErrors['beneficiaryDetails.sex'] = 'Sex is required';
+      }
+      
+      // Municipality, province, region have defaults but validate if changed
       if (!beneficiaryDetails.municipality?.trim()) {
         newErrors['beneficiaryDetails.municipality'] = 'Municipality is required';
       }
@@ -285,9 +343,6 @@ export const useRSBSAForm = () => {
       }
       if (!beneficiaryDetails.region?.trim()) {
         newErrors['beneficiaryDetails.region'] = 'Region is required';
-      }
-      if (!beneficiaryDetails.contact_number?.trim()) {
-        newErrors['beneficiaryDetails.contact_number'] = 'Contact number is required';
       }
 
       // Validate farm profile
@@ -313,40 +368,53 @@ export const useRSBSAForm = () => {
         });
       }
 
-      // Validate livelihood-specific details based on category
-      const livelihoodCategoryId = formData.farmProfile.livelihood_category_id;
-      if (livelihoodCategoryId === 1) { // Farmer
-        const hasAnyFarmerActivity = 
-          formData.farmerDetails.is_rice || 
-          formData.farmerDetails.is_corn || 
-          formData.farmerDetails.is_other_crops ||
-          formData.farmerDetails.is_livestock ||
-          formData.farmerDetails.is_poultry;
-        
-        if (!hasAnyFarmerActivity) {
-          newErrors['farmerDetails'] = 'Please select at least one farming activity';
-        }
-      } else if (livelihoodCategoryId === 2) { // Fisherfolk
-        const hasAnyFishingActivity = 
-          formData.fisherfolkDetails.is_fish_capture || 
-          formData.fisherfolkDetails.is_aquaculture || 
-          formData.fisherfolkDetails.is_fish_processing;
-        
-        if (!hasAnyFishingActivity) {
-          newErrors['fisherfolkDetails'] = 'Please select at least one fishing activity';
-        }
-      } else if (livelihoodCategoryId === 3) { // Farmworker
-        const hasAnyFarmworkerActivity = 
-          formData.farmworkerDetails.is_land_preparation || 
-          formData.farmworkerDetails.is_cultivation || 
-          formData.farmworkerDetails.is_harvesting;
-        
-        if (!hasAnyFarmworkerActivity) {
-          newErrors['farmworkerDetails'] = 'Please select at least one farmworker activity';
-        }
-      } else if (livelihoodCategoryId === 4) { // Agri Youth
-        if (!formData.agriYouthDetails.is_agri_youth) {
-          newErrors['agriYouthDetails.is_agri_youth'] = 'Please confirm you are an Agri-Youth';
+      // Validate livelihood-specific activities (updated for new structure)
+      // Note: With new structure, we need to validate based on selected livelihoods
+      if (formData.beneficiaryLivelihoods && formData.beneficiaryLivelihoods.length > 0) {
+        formData.beneficiaryLivelihoods.forEach((livelihood, index) => {
+          if (livelihood.livelihood_category_id === 1) { // Farmer
+            const hasAnyFarmerActivity = 
+              formData.farmerActivities.rice || 
+              formData.farmerActivities.corn || 
+              formData.farmerActivities.other_crops ||
+              formData.farmerActivities.livestock ||
+              formData.farmerActivities.poultry;
+            
+            if (!hasAnyFarmerActivity) {
+              newErrors['farmerActivities'] = 'Please select at least one farming activity';
+            }
+          } else if (livelihood.livelihood_category_id === 2) { // Fisherfolk
+            const hasAnyFishingActivity = 
+              formData.fisherfolkActivities.fish_capture || 
+              formData.fisherfolkActivities.aquaculture || 
+              formData.fisherfolkActivities.gleaning ||
+              formData.fisherfolkActivities.fish_processing ||
+              formData.fisherfolkActivities.fish_vending;
+            
+            if (!hasAnyFishingActivity) {
+              newErrors['fisherfolkActivities'] = 'Please select at least one fishing activity';
+            }
+          } else if (livelihood.livelihood_category_id === 3) { // Farmworker
+            const hasAnyFarmworkerActivity = 
+              formData.farmworkerActivities.land_preparation || 
+              formData.farmworkerActivities.planting ||
+              formData.farmworkerActivities.cultivation || 
+              formData.farmworkerActivities.harvesting;
+            
+            if (!hasAnyFarmworkerActivity) {
+              newErrors['farmworkerActivities'] = 'Please select at least one farmworker activity';
+            }
+          } else if (livelihood.livelihood_category_id === 4) { // Agri Youth
+            if (!formData.agriYouthActivities.is_agri_youth) {
+              newErrors['agriYouthActivities.is_agri_youth'] = 'Please confirm you are an Agri-Youth';
+            }
+          }
+        });
+      } else {
+        // Fallback validation for single livelihood (backward compatibility)
+        const livelihoodCategoryId = formData.farmProfile.livelihood_category_id;
+        if (livelihoodCategoryId) {
+          newErrors['beneficiaryLivelihoods'] = 'Please select at least one livelihood category';
         }
       }
 

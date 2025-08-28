@@ -117,7 +117,7 @@ const logError = (context, error, additionalData = {}) => {
  * Handles all API operations for RSBSA (Registry System for Basic Sectors in Agriculture)
  */
 
-// Base API endpoints
+// Base API endpoints (updated to match actual database structure)
 const RSBSA_ENDPOINTS = {
   // Main enrollment endpoints
   ENROLLMENTS: '/api/rsbsa/enrollments',
@@ -127,22 +127,24 @@ const RSBSA_ENDPOINTS = {
   BENEFICIARY_DETAILS: '/api/rsbsa/beneficiary-details',
   FARM_PROFILES: '/api/rsbsa/farm-profiles',
   
-  // Detail endpoints
-  FARMER_DETAILS: '/api/rsbsa/farmer-details',
-  FISHERFOLK_DETAILS: '/api/rsbsa/fisherfolk-details',
-  FARMWORKER_DETAILS: '/api/rsbsa/farmworker-details',
-  AGRI_YOUTH_DETAILS: '/api/rsbsa/agri-youth-details',
+  // NEW: Livelihood system endpoints
+  BENEFICIARY_LIVELIHOODS: '/api/rsbsa/beneficiary-livelihoods',
+  FARMER_ACTIVITIES: '/api/rsbsa/farmer-activities',
+  FISHERFOLK_ACTIVITIES: '/api/rsbsa/fisherfolk-activities',
+  FARMWORKER_ACTIVITIES: '/api/rsbsa/farmworker-activities',
+  AGRI_YOUTH_ACTIVITIES: '/api/rsbsa/agri-youth-activities',
   
   // Farm parcels
   FARM_PARCELS: '/api/rsbsa/farm-parcels',
   
   // Reference data
+  SECTORS: '/api/rsbsa/sectors',
   LIVELIHOOD_CATEGORIES: '/api/rsbsa/livelihood-categories',
+  COMMODITY_CATEGORIES: '/api/rsbsa/commodity-categories',
   COMMODITIES: '/api/rsbsa/commodities',
-  BARANGAYS: '/api/rsbsa/barangays',
-  MUNICIPALITIES: '/api/rsbsa/municipalities',
-  PROVINCES: '/api/rsbsa/provinces',
-  REGIONS: '/api/rsbsa/regions'
+  
+  // Document management
+  DOCUMENTS: '/api/rsbsa/documents'
 };
 
 /**
@@ -546,29 +548,187 @@ export const farmParcelsService = {
 };
 
 /**
- * Livelihood Details Operations
+ * NEW: Beneficiary Livelihoods Operations (Many-to-Many relationship)
  */
-export const livelihoodDetailsService = {
-  // Farmer details
-  async createFarmerDetails(detailsData) {
+export const beneficiaryLivelihoodsService = {
+  // Create beneficiary livelihood relationship
+  async createBeneficiaryLivelihood(livelihoodData) {
     try {
-      console.log('🚀 Creating farmer details:', detailsData);
-      const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARMER_DETAILS, detailsData);
-      console.log('✅ Farmer details created successfully:', response.data);
+      console.log('🚀 Creating beneficiary livelihood:', livelihoodData);
+      const response = await axiosInstance.post(RSBSA_ENDPOINTS.BENEFICIARY_LIVELIHOODS, livelihoodData);
+      console.log('✅ Beneficiary livelihood created successfully:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
-      logError('Create Farmer Details', error, { detailsData });
+      logError('Create Beneficiary Livelihood', error, { livelihoodData });
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Failed to create farmer details',
+        error: error.response?.data?.message || 'Failed to create beneficiary livelihood',
         details: error.response?.data
       };
     }
   },
 
+  // Get beneficiary livelihoods by beneficiary ID
+  async getBeneficiaryLivelihoods(beneficiaryId) {
+    try {
+      console.log('🔍 Fetching beneficiary livelihoods for beneficiary:', beneficiaryId);
+      const response = await axiosInstance.get(`${RSBSA_ENDPOINTS.BENEFICIARY_LIVELIHOODS}/beneficiary/${beneficiaryId}`);
+      console.log('✅ Beneficiary livelihoods fetched successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Get Beneficiary Livelihoods', error, { beneficiaryId });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to fetch beneficiary livelihoods',
+        details: error.response?.data
+      };
+    }
+  }
+};
+
+/**
+ * NEW: Activity Operations (Updated structure)
+ */
+export const activityService = {
+  // Farmer Activities
+  async createFarmerActivities(activitiesData) {
+    try {
+      console.log('🚀 Creating farmer activities:', activitiesData);
+      const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARMER_ACTIVITIES, activitiesData);
+      console.log('✅ Farmer activities created successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Create Farmer Activities', error, { activitiesData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to create farmer activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  async updateFarmerActivities(activitiesId, updateData) {
+    try {
+      console.log('🔄 Updating farmer activities:', { activitiesId, updateData });
+      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.FARMER_ACTIVITIES}/${activitiesId}`, updateData);
+      console.log('✅ Farmer activities updated successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Update Farmer Activities', error, { activitiesId, updateData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to update farmer activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  // Fisherfolk Activities
+  async createFisherfolkActivities(activitiesData) {
+    try {
+      console.log('🚀 Creating fisherfolk activities:', activitiesData);
+      const response = await axiosInstance.post(RSBSA_ENDPOINTS.FISHERFOLK_ACTIVITIES, activitiesData);
+      console.log('✅ Fisherfolk activities created successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Create Fisherfolk Activities', error, { activitiesData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to create fisherfolk activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  async updateFisherfolkActivities(activitiesId, updateData) {
+    try {
+      console.log('🔄 Updating fisherfolk activities:', { activitiesId, updateData });
+      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.FISHERFOLK_ACTIVITIES}/${activitiesId}`, updateData);
+      console.log('✅ Fisherfolk activities updated successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Update Fisherfolk Activities', error, { activitiesId, updateData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to update fisherfolk activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  // Farmworker Activities
+  async createFarmworkerActivities(activitiesData) {
+    try {
+      console.log('🚀 Creating farmworker activities:', activitiesData);
+      const response = await axiosInstance.post(RSBSA_ENDPOINTS.FARMWORKER_ACTIVITIES, activitiesData);
+      console.log('✅ Farmworker activities created successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Create Farmworker Activities', error, { activitiesData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to create farmworker activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  async updateFarmworkerActivities(activitiesId, updateData) {
+    try {
+      console.log('🔄 Updating farmworker activities:', { activitiesId, updateData });
+      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.FARMWORKER_ACTIVITIES}/${activitiesId}`, updateData);
+      console.log('✅ Farmworker activities updated successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Update Farmworker Activities', error, { activitiesId, updateData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to update farmworker activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  // Agri Youth Activities
+  async createAgriYouthActivities(activitiesData) {
+    try {
+      console.log('🚀 Creating agri youth activities:', activitiesData);
+      const response = await axiosInstance.post(RSBSA_ENDPOINTS.AGRI_YOUTH_ACTIVITIES, activitiesData);
+      console.log('✅ Agri youth activities created successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Create Agri Youth Activities', error, { activitiesData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to create agri youth activities',
+        details: error.response?.data
+      };
+    }
+  },
+
+  async updateAgriYouthActivities(activitiesId, updateData) {
+    try {
+      console.log('🔄 Updating agri youth activities:', { activitiesId, updateData });
+      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.AGRI_YOUTH_ACTIVITIES}/${activitiesId}`, updateData);
+      console.log('✅ Agri youth activities updated successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Update Agri Youth Activities', error, { activitiesId, updateData });
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to update agri youth activities',
+        details: error.response?.data
+      };
+    }
+  }
+};
+
+// Keep old service for backward compatibility
+export const livelihoodDetailsService = {
   async updateFarmerDetails(detailsId, updateData) {
     try {
-      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.FARMER_DETAILS}/${detailsId}`, updateData);
+      console.log('⚠️ Using deprecated farmer details service. Consider using activityService.updateFarmerActivities instead.');
+      const response = await axiosInstance.put(`${RSBSA_ENDPOINTS.FARMER_ACTIVITIES}/${detailsId}`, updateData);
       return { success: true, data: response.data };
     } catch (error) {
       return { 
@@ -668,9 +828,26 @@ export const livelihoodDetailsService = {
 };
 
 /**
- * Reference Data Operations
+ * Reference Data Operations (Updated with new endpoints)
  */
 export const referenceDataService = {
+  // Get sectors
+  async getSectors() {
+    try {
+      console.log('🔍 Fetching sectors...');
+      const response = await axiosInstance.get(RSBSA_ENDPOINTS.SECTORS);
+      console.log('✅ Sectors fetched successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Get Sectors', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to fetch sectors',
+        details: error.response?.data
+      };
+    }
+  },
+
   // Get livelihood categories
   async getLivelihoodCategories() {
     try {
@@ -683,6 +860,23 @@ export const referenceDataService = {
       return { 
         success: false, 
         error: error.response?.data?.message || 'Failed to fetch livelihood categories',
+        details: error.response?.data
+      };
+    }
+  },
+
+  // Get commodity categories
+  async getCommodityCategories() {
+    try {
+      console.log('🔍 Fetching commodity categories...');
+      const response = await axiosInstance.get(RSBSA_ENDPOINTS.COMMODITY_CATEGORIES);
+      console.log('✅ Commodity categories fetched successfully:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      logError('Get Commodity Categories', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to fetch commodity categories',
         details: error.response?.data
       };
     }
@@ -766,13 +960,13 @@ export const referenceDataService = {
 };
 
 /**
- * Complete RSBSA Form Submission
- * This handles the entire form submission process
+ * Complete RSBSA Form Submission (Updated for new database structure)
+ * This handles the entire form submission process with the new livelihood system
  */
 export const rsbsaFormService = {
   async submitCompleteForm(formData, userId) {
     try {
-      console.log('🚀 Submitting complete RSBSA form:', { formData, userId });
+      console.log('🚀 Submitting complete RSBSA form (NEW STRUCTURE):', { formData, userId });
       
       // Validate complete form data
       const formValidation = this.validateCompleteForm(formData);
@@ -815,38 +1009,113 @@ export const rsbsaFormService = {
         farm_profile_id: farmProfileId
       }));
 
-      const parcelsResult = await farmParcelsService.createMultipleParcels(parcelsData);
-      if (!parcelsResult.success) {
-        return parcelsResult;
+      let parcelsResult = { success: true, data: [] };
+      if (parcelsData.length > 0) {
+        parcelsResult = await farmParcelsService.createMultipleParcels(parcelsData);
+        if (!parcelsResult.success) {
+          return parcelsResult;
+        }
       }
 
-      // Step 4: Create livelihood details based on category
-      let livelihoodDetailsResult = { success: true, data: null };
+      // Step 4: NEW LIVELIHOOD SYSTEM - Create beneficiary livelihoods and activities
+      const livelihoodResults = [];
+      
+      // Handle multiple livelihoods if beneficiaryLivelihoods array exists
+      if (formData.beneficiaryLivelihoods && formData.beneficiaryLivelihoods.length > 0) {
+        for (const livelihood of formData.beneficiaryLivelihoods) {
+          // Create beneficiary livelihood relationship
+          const livelihoodResult = await beneficiaryLivelihoodsService.createBeneficiaryLivelihood({
+            beneficiary_id: beneficiaryDetailsId,
+            livelihood_category_id: livelihood.livelihood_category_id
+          });
 
-      if (formData.farmProfile.livelihood_category_id === 1) { // Farmer
-        livelihoodDetailsResult = await livelihoodDetailsService.createFarmerDetails({
-          ...formData.farmerDetails,
-          farm_profile_id: farmProfileId
-        });
-      } else if (formData.farmProfile.livelihood_category_id === 2) { // Fisherfolk
-        livelihoodDetailsResult = await livelihoodDetailsService.createFisherfolkDetails({
-          ...formData.fisherfolkDetails,
-          farm_profile_id: farmProfileId
-        });
-      } else if (formData.farmProfile.livelihood_category_id === 3) { // Farmworker
-        livelihoodDetailsResult = await livelihoodDetailsService.createFarmworkerDetails({
-          ...formData.farmworkerDetails,
-          farm_profile_id: farmProfileId
-        });
-      } else if (formData.farmProfile.livelihood_category_id === 4) { // Agri Youth
-        livelihoodDetailsResult = await livelihoodDetailsService.createAgriYouthDetails({
-          ...formData.agriYouthDetails,
-          farm_profile_id: farmProfileId
-        });
-      }
+          if (!livelihoodResult.success) {
+            return livelihoodResult;
+          }
 
-      if (!livelihoodDetailsResult.success) {
-        return livelihoodDetailsResult;
+          const livelihoodId = livelihoodResult.data.id;
+
+          // Create specific activity based on category
+          let activityResult = { success: true, data: null };
+          
+          if (livelihood.livelihood_category_id === 1) { // Farmer
+            activityResult = await activityService.createFarmerActivities({
+              ...formData.farmerActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihood.livelihood_category_id === 2) { // Fisherfolk
+            activityResult = await activityService.createFisherfolkActivities({
+              ...formData.fisherfolkActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihood.livelihood_category_id === 3) { // Farmworker
+            activityResult = await activityService.createFarmworkerActivities({
+              ...formData.farmworkerActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihood.livelihood_category_id === 4) { // Agri Youth
+            activityResult = await activityService.createAgriYouthActivities({
+              ...formData.agriYouthActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          }
+
+          if (!activityResult.success) {
+            return activityResult;
+          }
+
+          livelihoodResults.push({
+            livelihood: livelihoodResult.data,
+            activities: activityResult.data
+          });
+        }
+      } else {
+        // Fallback: Single livelihood from farmProfile (backward compatibility)
+        const livelihoodCategoryId = formData.farmProfile.livelihood_category_id;
+        if (livelihoodCategoryId) {
+          const livelihoodResult = await beneficiaryLivelihoodsService.createBeneficiaryLivelihood({
+            beneficiary_id: beneficiaryDetailsId,
+            livelihood_category_id: livelihoodCategoryId
+          });
+
+          if (!livelihoodResult.success) {
+            return livelihoodResult;
+          }
+
+          const livelihoodId = livelihoodResult.data.id;
+          let activityResult = { success: true, data: null };
+          
+          if (livelihoodCategoryId === 1) { // Farmer
+            activityResult = await activityService.createFarmerActivities({
+              ...formData.farmerActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihoodCategoryId === 2) { // Fisherfolk
+            activityResult = await activityService.createFisherfolkActivities({
+              ...formData.fisherfolkActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihoodCategoryId === 3) { // Farmworker
+            activityResult = await activityService.createFarmworkerActivities({
+              ...formData.farmworkerActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          } else if (livelihoodCategoryId === 4) { // Agri Youth
+            activityResult = await activityService.createAgriYouthActivities({
+              ...formData.agriYouthActivities,
+              beneficiary_livelihood_id: livelihoodId
+            });
+          }
+
+          if (!activityResult.success) {
+            return activityResult;
+          }
+
+          livelihoodResults.push({
+            livelihood: livelihoodResult.data,
+            activities: activityResult.data
+          });
+        }
       }
 
       // Step 5: Create RSBSA enrollment
@@ -872,12 +1141,13 @@ export const rsbsaFormService = {
           beneficiaryDetails: beneficiaryResult.data,
           farmProfile: farmProfileResult.data,
           farmParcels: parcelsResult.data,
-          livelihoodDetails: livelihoodDetailsResult.data
+          livelihoods: livelihoodResults
         },
         message: 'RSBSA application submitted successfully'
       };
 
     } catch (error) {
+      logError('Submit Complete Form', error, { formData, userId });
       return {
         success: false,
         error: 'Failed to submit RSBSA application',
@@ -1085,13 +1355,20 @@ export const rsbsaFormService = {
   }
 };
 
-// Export all services
+// Export all services (updated with new services)
 export default {
   rsbsaEnrollmentService,
   beneficiaryDetailsService,
   farmProfileService,
   farmParcelsService,
+  
+  // NEW: Updated livelihood system
+  beneficiaryLivelihoodsService,
+  activityService,
+  
+  // Keep old service for backward compatibility
   livelihoodDetailsService,
+  
   referenceDataService,
   rsbsaFormService
 };

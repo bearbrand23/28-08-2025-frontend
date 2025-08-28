@@ -134,13 +134,51 @@ const BeneficiaryProfileSection = ({ formData, errors, updateField }) => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Email Address"
-                      type="email"
-                      value={formData.beneficiaryDetails?.email || ''}
-                      onChange={(e) => handleFieldChange('email', e.target.value)}
-                      error={!!errors['beneficiaryDetails.email']}
-                      helperText={errors['beneficiaryDetails.email']}
-                      placeholder="your.email@example.com"
+                      label="Emergency Contact Number"
+                      value={formData.beneficiaryDetails?.emergency_contact_number || ''}
+                      onChange={(e) => handleFieldChange('emergency_contact_number', e.target.value)}
+                      placeholder="Emergency contact number"
+                    />
+                  </Grid>
+
+                  {/* Personal Information - CRITICAL MISSING FIELDS */}
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Birth Date *"
+                      type="date"
+                      value={formData.beneficiaryDetails?.birth_date || ''}
+                      onChange={(e) => handleFieldChange('birth_date', e.target.value)}
+                      error={!!errors['beneficiaryDetails.birth_date']}
+                      helperText={errors['beneficiaryDetails.birth_date']}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <FormControl fullWidth error={!!errors['beneficiaryDetails.sex']}>
+                      <InputLabel>Sex *</InputLabel>
+                      <Select
+                        value={formData.beneficiaryDetails?.sex || ''}
+                        onChange={(e) => handleFieldChange('sex', e.target.value)}
+                        label="Sex *"
+                      >
+                        <MenuItem value="male">Male</MenuItem>
+                        <MenuItem value="female">Female</MenuItem>
+                      </Select>
+                      {errors['beneficiaryDetails.sex'] && (
+                        <FormHelperText>{errors['beneficiaryDetails.sex']}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Place of Birth"
+                      value={formData.beneficiaryDetails?.place_of_birth || ''}
+                      onChange={(e) => handleFieldChange('place_of_birth', e.target.value)}
+                      placeholder="Enter place of birth"
                     />
                   </Grid>
 
