@@ -1,11 +1,14 @@
 import { Box, Avatar, Typography, Card, styled, Divider } from '@mui/material';
-
+import { useChat } from 'src/contexts/ChatContext';
 import {
   formatDistance,
   format,
   subDays,
   subHours,
-  subMinutes
+  subMinutes,
+  isToday,
+  isYesterday,
+  isSameDay
 } from 'date-fns';
 import ScheduleTwoToneIcon from '@mui/icons-material/ScheduleTwoTone';
 
@@ -46,267 +49,147 @@ const CardWrapperSecondary = styled(Card)(
 );
 
 function ChatContent() {
-  const user = {
-    name: 'Catherine Pike',
-    avatar: '/static/images/avatars/1.jpg'
+  const { messages, currentUser, getActiveConversation } = useChat();
+  const activeConversation = getActiveConversation();
+
+  if (!activeConversation) {
+    return (
+      <Box p={3} display="flex" alignItems="center" justifyContent="center" height="100%">
+        <Typography variant="h6" color="textSecondary">
+          Select a conversation to start chatting
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Group messages by date
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+    messages.forEach(message => {
+      const date = new Date(message.timestamp);
+      let dateKey;
+      
+      if (isToday(date)) {
+        dateKey = 'Today';
+      } else if (isYesterday(date)) {
+        dateKey = 'Yesterday';
+      } else {
+        dateKey = format(date, 'MMMM dd yyyy');
+      }
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+    });
+    return groups;
+  };
+
+  const messageGroups = groupMessagesByDate(messages);
+
+  const renderMessage = (message, isLast = false) => {
+    const isMyMessage = message.sender === 'me';
+    
+    return (
+      <Box
+        key={message.id}
+        display="flex"
+        alignItems="flex-start"
+        justifyContent={isMyMessage ? "flex-end" : "flex-start"}
+        py={1.5}
+      >
+        {!isMyMessage && (
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 50,
+              height: 50
+            }}
+            alt={message.name}
+            src={message.avatar}
+          />
+        )}
+        
+        <Box
+          display="flex"
+          alignItems={isMyMessage ? "flex-end" : "flex-start"}
+          flexDirection="column"
+          justifyContent={isMyMessage ? "flex-end" : "flex-start"}
+          ml={isMyMessage ? 0 : 2}
+          mr={isMyMessage ? 2 : 0}
+        >
+          {isMyMessage ? (
+            <CardWrapperPrimary>
+              {message.text}
+            </CardWrapperPrimary>
+          ) : (
+            <CardWrapperSecondary>
+              {message.text}
+            </CardWrapperSecondary>
+          )}
+          
+          {isLast && (
+            <Typography
+              variant="subtitle1"
+              sx={{
+                pt: 1,
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <ScheduleTwoToneIcon
+                sx={{
+                  mr: 0.5
+                }}
+                fontSize="small"
+              />
+              {formatDistance(new Date(message.timestamp), new Date(), {
+                addSuffix: true
+              })}
+            </Typography>
+          )}
+        </Box>
+
+        {isMyMessage && (
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 50,
+              height: 50
+            }}
+            alt={currentUser.name}
+            src={currentUser.avatar}
+          />
+        )}
+      </Box>
+    );
   };
 
   return (
     <Box p={3}>
-      <DividerWrapper>
-        {format(subDays(new Date(), 3), 'MMMM dd yyyy')}
-      </DividerWrapper>
-
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-start"
-        py={3}
-      >
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 50,
-            height: 50
-          }}
-          alt="Zain Baptista"
-          src="/static/images/avatars/1.jpg"
-        />
-        <Box
-          display="flex"
-          alignItems="flex-start"
-          flexDirection="column"
-          justifyContent="flex-start"
-          ml={2}
-        >
-          <CardWrapperSecondary>
-            Hi. Can you send me the missing invoices asap?
-          </CardWrapperSecondary>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              pt: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ScheduleTwoToneIcon
-              sx={{
-                mr: 0.5
-              }}
-              fontSize="small"
-            />
-            {formatDistance(subHours(new Date(), 115), new Date(), {
-              addSuffix: true
-            })}
+      {Object.entries(messageGroups).map(([dateKey, dateMessages]) => (
+        <Box key={dateKey}>
+          <DividerWrapper>
+            {dateKey}
+          </DividerWrapper>
+          
+          {dateMessages.map((message, index) => {
+            const isLastInGroup = index === dateMessages.length - 1;
+            const nextMessage = dateMessages[index + 1];
+            const isLastFromSender = !nextMessage || nextMessage.sender !== message.sender;
+            
+            return renderMessage(message, isLastFromSender);
+          })}
+        </Box>
+      ))}
+      
+      {messages.length === 0 && (
+        <Box display="flex" alignItems="center" justifyContent="center" height="200px">
+          <Typography variant="body1" color="textSecondary">
+            No messages yet. Start the conversation!
           </Typography>
         </Box>
-      </Box>
-
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-end"
-        py={3}
-      >
-        <Box
-          display="flex"
-          alignItems="flex-end"
-          flexDirection="column"
-          justifyContent="flex-end"
-          mr={2}
-        >
-          <CardWrapperPrimary>
-            Yes, I'll email them right now. I'll let you know once the remaining
-            invoices are done.
-          </CardWrapperPrimary>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              pt: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ScheduleTwoToneIcon
-              sx={{
-                mr: 0.5
-              }}
-              fontSize="small"
-            />
-            {formatDistance(subHours(new Date(), 125), new Date(), {
-              addSuffix: true
-            })}
-          </Typography>
-        </Box>
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 50,
-            height: 50
-          }}
-          alt={user.name}
-          src={user.avatar}
-        />
-      </Box>
-      <DividerWrapper>
-        {format(subDays(new Date(), 5), 'MMMM dd yyyy')}
-      </DividerWrapper>
-
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-end"
-        py={3}
-      >
-        <Box
-          display="flex"
-          alignItems="flex-end"
-          flexDirection="column"
-          justifyContent="flex-end"
-          mr={2}
-        >
-          <CardWrapperPrimary>Hey! Are you there?</CardWrapperPrimary>
-          <CardWrapperPrimary
-            sx={{
-              mt: 2
-            }}
-          >
-            Heeeelloooo????
-          </CardWrapperPrimary>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              pt: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ScheduleTwoToneIcon
-              sx={{
-                mr: 0.5
-              }}
-              fontSize="small"
-            />
-            {formatDistance(subHours(new Date(), 60), new Date(), {
-              addSuffix: true
-            })}
-          </Typography>
-        </Box>
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 50,
-            height: 50
-          }}
-          alt={user.name}
-          src={user.avatar}
-        />
-      </Box>
-      <DividerWrapper>Today</DividerWrapper>
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-start"
-        py={3}
-      >
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 50,
-            height: 50
-          }}
-          alt="Zain Baptista"
-          src="/static/images/avatars/1.jpg"
-        />
-        <Box
-          display="flex"
-          alignItems="flex-start"
-          flexDirection="column"
-          justifyContent="flex-start"
-          ml={2}
-        >
-          <CardWrapperSecondary>Hey there!</CardWrapperSecondary>
-          <CardWrapperSecondary
-            sx={{
-              mt: 1
-            }}
-          >
-            How are you? Is it ok if I call you?
-          </CardWrapperSecondary>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              pt: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ScheduleTwoToneIcon
-              sx={{
-                mr: 0.5
-              }}
-              fontSize="small"
-            />
-            {formatDistance(subMinutes(new Date(), 6), new Date(), {
-              addSuffix: true
-            })}
-          </Typography>
-        </Box>
-      </Box>
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-end"
-        py={3}
-      >
-        <Box
-          display="flex"
-          alignItems="flex-end"
-          flexDirection="column"
-          justifyContent="flex-end"
-          mr={2}
-        >
-          <CardWrapperPrimary>
-            Hello, I just got my Amazon order shipped and I’m very happy about
-            that.
-          </CardWrapperPrimary>
-          <CardWrapperPrimary
-            sx={{
-              mt: 1
-            }}
-          >
-            Can you confirm?
-          </CardWrapperPrimary>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              pt: 1,
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ScheduleTwoToneIcon
-              sx={{
-                mr: 0.5
-              }}
-              fontSize="small"
-            />
-            {formatDistance(subMinutes(new Date(), 8), new Date(), {
-              addSuffix: true
-            })}
-          </Typography>
-        </Box>
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 50,
-            height: 50
-          }}
-          alt={user.name}
-          src={user.avatar}
-        />
-      </Box>
+      )}
     </Box>
   );
 }

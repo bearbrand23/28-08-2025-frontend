@@ -31,6 +31,8 @@ const BeneficiaryDashboard = Loader(lazy(() => import('src/beneficiary_contents/
 
 // 📩 Shared Modules
 const Messenger = Loader(lazy(() => import('src/content/applications/Messenger')));
+const BeneficiaryMessenger = Loader(lazy(() => import('src/beneficiary_contents/applications/Messenger')));
+const CoordinatorMessenger = Loader(lazy(() => import('src/coordinator_contents/applications/Messenger')));
 const Transactions = Loader(lazy(() => import('src/content/applications/Transactions')));
 const Sector = Loader(lazy(() => import('src/content/applications/Sector')));
 const CoordinatorSettings = Loader(lazy(() => import('src/content/applications/Coordinator')));
@@ -138,6 +140,7 @@ const routes = [
     children: [
       { path: '', element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <Coordinator /> },
+      { path: 'messenger', element: <CoordinatorMessenger /> },
       { path: 'transactions', element: <Transactions /> },
       {
         path: 'profile',
@@ -177,6 +180,10 @@ const routes = [
       { 
         path: 'RSBSA_FORM', // 📝 Main RSBSA application form
         element: <RSBSAForm /> // This route matches "/beneficiary/RSBSA_FORM" from your sidebar
+      },
+      { 
+        path: 'messenger', // 💬 Beneficiary messenger
+        element: <BeneficiaryMessenger />
       },
       {
         path: 'rsbsa', // 📊 RSBSA management section with nested routes

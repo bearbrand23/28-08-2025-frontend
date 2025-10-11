@@ -15,9 +15,11 @@ import {
   ListItemText,
   ListItemIcon,
   styled,
-  useTheme
+  useTheme,
+  Badge
 } from '@mui/material';
 import { formatDistance, subMinutes } from 'date-fns';
+import { useChat } from 'src/contexts/ChatContext';
 import CallTwoToneIcon from '@mui/icons-material/CallTwoTone';
 import VideoCameraFrontTwoToneIcon from '@mui/icons-material/VideoCameraFrontTwoTone';
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
@@ -84,6 +86,8 @@ const AccordionSummaryWrapper = styled(AccordionSummary)(
 
 function TopBarContent() {
   const theme = useTheme();
+  const { getActiveConversation } = useChat();
+  const activeConversation = getActiveConversation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -97,25 +101,45 @@ function TopBarContent() {
     setExpanded(isExpanded ? section : false);
   };
 
+  if (!activeConversation) {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center" p={2}>
+        <Typography variant="h6" color="textSecondary">
+          Select a conversation
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <>
       <RootWrapper>
         <Box display="flex" alignItems="center">
-          <Avatar
-            variant="rounded"
-            sx={{
-              width: 48,
-              height: 48
+          <Badge
+            color="success"
+            variant="dot"
+            invisible={!activeConversation.isOnline}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
             }}
-            alt="Zain Baptista"
-            src="/static/images/avatars/1.jpg"
-          />
+          >
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 48,
+                height: 48
+              }}
+              alt={activeConversation.name}
+              src={activeConversation.avatar}
+            />
+          </Badge>
           <Box ml={1}>
-            <Typography variant="h4">Zain Baptista</Typography>
-            <Typography variant="subtitle1">
-              {formatDistance(subMinutes(new Date(), 8), new Date(), {
+            <Typography variant="h4">{activeConversation.name}</Typography>
+            <Typography variant="subtitle1" color={activeConversation.isOnline ? "success.main" : "textSecondary"}>
+              {activeConversation.isOnline ? 'Online' : `Last seen ${formatDistance(activeConversation.lastMessageTime, new Date(), {
                 addSuffix: true
-              })}
+              })}`}
             </Typography>
           </Box>
         </Box>
@@ -162,23 +186,32 @@ function TopBarContent() {
               textAlign: 'center'
             }}
           >
-            <Avatar
-              sx={{
-                mx: 'auto',
-                my: 2,
-                width: theme.spacing(12),
-                height: theme.spacing(12)
+            <Badge
+              color="success"
+              variant="dot"
+              invisible={!activeConversation.isOnline}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
               }}
-              variant="rounded"
-              alt="Zain Baptista"
-              src="/static/images/avatars/1.jpg"
-            />
-            <Typography variant="h4">Zain Baptista</Typography>
+            >
+              <Avatar
+                sx={{
+                  mx: 'auto',
+                  my: 2,
+                  width: theme.spacing(12),
+                  height: theme.spacing(12)
+                }}
+                variant="rounded"
+                alt={activeConversation.name}
+                src={activeConversation.avatar}
+              />
+            </Badge>
+            <Typography variant="h4">{activeConversation.name}</Typography>
             <Typography variant="subtitle2">
-              Active{' '}
-              {formatDistance(subMinutes(new Date(), 7), new Date(), {
+              {activeConversation.isOnline ? 'Online now' : `Last seen ${formatDistance(activeConversation.lastMessageTime, new Date(), {
                 addSuffix: true
-              })}
+              })}`}
             </Typography>
           </Box>
           <Divider
