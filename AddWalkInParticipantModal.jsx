@@ -378,53 +378,6 @@ const AddWalkInParticipantModal = ({
           </Grid>
 
           {/* ============================================ */}
-          {/* SERVICE INFORMATION SECTION */}
-          {/* ============================================ */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600, mt: 2 }}>
-              🩺 Service Information
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.target_category}>
-              <InputLabel>Service Category *</InputLabel>
-              <Select
-                value={formData.target_category}
-                label="Service Category *"
-                onChange={(e) => handleInputChange('target_category', e.target.value)}
-              >
-                {LIVESTOCK_SERVICE_CATEGORIES.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>
-                {errors.target_category || 'Type of livestock service needed'}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Autocomplete
-              fullWidth
-              options={availableServiceItems}
-              value={formData.service_item}
-              onChange={(event, newValue) => handleInputChange('service_item', newValue || '')}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Service Item *"
-                  error={!!errors.service_item}
-                  helperText={errors.service_item || 'Specific service/medicine to be provided'}
-                />
-              )}
-              disabled={!formData.target_category}
-            />
-          </Grid>
-
-          {/* ============================================ */}
           {/* ANIMAL INFORMATION SECTION */}
           {/* ============================================ */}
           <Grid item xs={12}>
@@ -434,12 +387,12 @@ const AddWalkInParticipantModal = ({
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <FormControl fullWidth error={!!errors.target_species}>
+            <FormControl fullWidth error={!!errors.target_category}>
               <InputLabel>Animal Species *</InputLabel>
               <Select
-                value={formData.target_species}
+                value={formData.target_category}
                 label="Animal Species *"
-                onChange={(e) => handleInputChange('target_species', e.target.value)}
+                onChange={(e) => handleInputChange('target_category', e.target.value)}
               >
                 {LIVESTOCK_SPECIES.map((species) => (
                   <MenuItem key={species} value={species}>
@@ -448,7 +401,7 @@ const AddWalkInParticipantModal = ({
                 ))}
               </Select>
               <FormHelperText>
-                {errors.target_species || 'Type of livestock animal'}
+                {errors.target_category || 'Type of livestock animal'}
               </FormHelperText>
             </FormControl>
           </Grid>
@@ -467,7 +420,7 @@ const AddWalkInParticipantModal = ({
                   helperText={errors.target_breed || 'Breed or type of animal'}
                 />
               )}
-              disabled={!formData.target_species}
+              disabled={!formData.target_category}
             />
           </Grid>
 
@@ -489,6 +442,32 @@ const AddWalkInParticipantModal = ({
                 Sex or classification of animals
               </FormHelperText>
             </FormControl>
+          </Grid>
+
+          {/* ============================================ */}
+          {/* SERVICE DETAILS SECTION */}
+          {/* ============================================ */}
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600, mt: 2 }}>
+              💉 Service Details
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Autocomplete
+              fullWidth
+              options={COMMON_SERVICE_ITEMS}
+              value={formData.service_item}
+              onChange={(event, newValue) => handleInputChange('service_item', newValue || '')}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Specific Service Item"
+                  helperText="Optional: Specific medicine/service details"
+                />
+              )}
+              freeSolo
+            />
           </Grid>
 
           {/* ============================================ */}
