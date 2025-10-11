@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
 /* eslint-disable jsx-a11y/label-has-for */
+import { useState } from 'react';
 import {
   Avatar,
   Tooltip,
@@ -12,6 +13,7 @@ import {
 } from '@mui/material';
 import AttachFileTwoToneIcon from '@mui/icons-material/AttachFileTwoTone';
 import SendTwoToneIcon from '@mui/icons-material/SendTwoTone';
+import { useChat } from 'src/contexts/ChatContext';
 
 const MessageInputWrapper = styled(InputBase)(
   ({ theme }) => `
@@ -27,10 +29,30 @@ const Input = styled('input')({
 
 function BottomBarContent() {
   const theme = useTheme();
+  const { sendMessage, currentUser } = useChat();
+  const [message, setMessage] = useState('');
 
-  const user = {
-    name: 'Catherine Pike',
-    avatar: '/static/images/avatars/1.jpg'
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      sendMessage(message);
+      setMessage('');
+    }
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // For now, just send a message about the file
+      sendMessage(`📎 Shared file: ${file.name}`);
+      event.target.value = ''; // Reset file input
+    }
   };
 
   return (
@@ -45,13 +67,18 @@ function BottomBarContent() {
       <Box flexGrow={1} display="flex" alignItems="center">
         <Avatar
           sx={{ display: { xs: 'none', sm: 'flex' }, mr: 1 }}
-          alt={user.name}
-          src={user.avatar}
+          alt={currentUser.name}
+          src={currentUser.avatar}
         />
         <MessageInputWrapper
           autoFocus
           placeholder="Write your message here..."
           fullWidth
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          multiline
+          maxRows={4}
         />
       </Box>
       <Box>
@@ -59,11 +86,17 @@ function BottomBarContent() {
           <IconButton
             sx={{ fontSize: theme.typography.pxToRem(16) }}
             color="primary"
+            onClick={() => setMessage(prev => prev + '😀')}
           >
             😀
           </IconButton>
         </Tooltip>
-        <Input accept="image/*" id="messenger-upload-file" type="file" />
+        <Input 
+          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+          id="messenger-upload-file" 
+          type="file"
+          onChange={handleFileUpload}
+        />
         <Tooltip arrow placement="top" title="Attach a file">
           <label htmlFor="messenger-upload-file">
             <IconButton sx={{ mx: 1 }} color="primary" component="span">
@@ -71,7 +104,12 @@ function BottomBarContent() {
             </IconButton>
           </label>
         </Tooltip>
-        <Button startIcon={<SendTwoToneIcon />} variant="contained">
+        <Button 
+          startIcon={<SendTwoToneIcon />} 
+          variant="contained"
+          onClick={handleSendMessage}
+          disabled={!message.trim()}
+        >
           Send
         </Button>
       </Box>

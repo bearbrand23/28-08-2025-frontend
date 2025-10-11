@@ -9,6 +9,7 @@ import ChatContent from './ChatContent';
 import MenuTwoToneIcon from '@mui/icons-material/MenuTwoTone';
 
 import Scrollbar from 'src/components/Scrollbar';
+import { ChatProvider } from 'src/contexts/ChatContext';
 
 import {
   Box,
@@ -82,7 +83,7 @@ function ApplicationsMessenger() {
   };
 
   return (
-    <>
+    <ChatProvider>
       <Helmet>
         <title>Messenger - Applications</title>
       </Helmet>
@@ -137,7 +138,7 @@ function ApplicationsMessenger() {
           <BottomBarContent />
         </ChatWindow>
       </RootWrapper>
-    </>
+    </ChatProvider>
   );
 }
 

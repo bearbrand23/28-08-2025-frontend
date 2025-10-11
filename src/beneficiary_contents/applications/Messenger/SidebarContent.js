@@ -19,7 +19,8 @@ import {
   ListItemAvatar,
   ListItemText,
   lighten,
-  styled
+  styled,
+  Badge
 } from '@mui/material';
 import { formatDistance, subMinutes, subHours } from 'date-fns';
 import SettingsTwoToneIcon from '@mui/icons-material/SettingsTwoTone';
@@ -28,6 +29,7 @@ import Label from 'src/components/Label';
 import CheckTwoToneIcon from '@mui/icons-material/CheckTwoTone';
 import AlarmTwoToneIcon from '@mui/icons-material/AlarmTwoTone';
 import { Link as RouterLink } from 'react-router-dom';
+import { useChat } from 'src/contexts/ChatContext';
 
 const AvatarSuccess = styled(Avatar)(
   ({ theme }) => `
@@ -93,15 +95,19 @@ const TabsContainerWrapper = styled(Box)(
 );
 
 function SidebarContent() {
-  const user = {
-    name: 'Catherine Pike',
-    avatar: '/static/images/avatars/1.jpg',
-    jobtitle: 'Software Developer'
-  };
+  const { 
+    currentUser, 
+    activeChat, 
+    setActiveChat, 
+    getFilteredConversations, 
+    getTotalUnreadCount 
+  } = useChat();
 
   const [state, setState] = useState({
     invisible: true
   });
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleChange = (event) => {
     setState({
@@ -122,10 +128,25 @@ function SidebarContent() {
     setCurrentTab(value);
   };
 
+  const filteredConversations = getFilteredConversations(currentTab).filter(conv =>
+    conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <RootWrapper>
       <Box display="flex" alignItems="flex-start">
-        <Avatar alt={user.name} src={user.avatar} />
+        <Badge
+          badgeContent={getTotalUnreadCount()}
+          color="error"
+          overlap="circular"
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+        >
+          <Avatar alt={currentUser.name} src={currentUser.avatar} />
+        </Badge>
         <Box
           sx={{
             ml: 1.5,
@@ -139,10 +160,10 @@ function SidebarContent() {
           >
             <Box>
               <Typography variant="h5" noWrap>
-                {user.name}
+                {currentUser.name}
               </Typography>
               <Typography variant="subtitle1" noWrap>
-                {user.jobtitle}
+                Software Developer
               </Typography>
             </Box>
             <IconButton
@@ -184,7 +205,9 @@ function SidebarContent() {
             </InputAdornment>
           )
         }}
-        placeholder="Search..."
+        placeholder="Search conversations..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
       />
 
       <Typography
@@ -213,153 +236,52 @@ function SidebarContent() {
       </TabsContainerWrapper>
 
       <Box mt={2}>
-        {currentTab === 'all' && (
+        {filteredConversations.length > 0 ? (
           <List disablePadding component="div">
-            <ListItemWrapper selected>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/1.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Zain Baptista"
-                secondary="Hey there, how are you today? Is it ok if I call you?"
-              />
-              <Label color="primary">
-                <b>2</b>
-              </Label>
-            </ListItemWrapper>
-            <ListItemWrapper>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/2.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Kierra Herwitz"
-                secondary="Hi! Did you manage to send me those documents"
-              />
-            </ListItemWrapper>
-            <ListItemWrapper>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/3.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Craig Vaccaro"
-                secondary="Ola, I still haven't received the program schedule"
-              />
-            </ListItemWrapper>
-            <ListItemWrapper>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/4.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Adison Press"
-                secondary="I recently did some buying on Amazon and now I'm stuck"
-              />
-              <Label color="primary">
-                <b>8</b>
-              </Label>
-            </ListItemWrapper>
+            {filteredConversations.map((conversation) => (
+              <ListItemWrapper
+                key={conversation.id}
+                selected={activeChat === conversation.id}
+                onClick={() => setActiveChat(conversation.id)}
+              >
+                <ListItemAvatar>
+                  <Badge
+                    color="success"
+                    variant="dot"
+                    invisible={!conversation.isOnline}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <Avatar src={conversation.avatar} />
+                  </Badge>
+                </ListItemAvatar>
+                <ListItemText
+                  sx={{
+                    mr: 1
+                  }}
+                  primaryTypographyProps={{
+                    color: 'textPrimary',
+                    variant: 'h5',
+                    noWrap: true
+                  }}
+                  secondaryTypographyProps={{
+                    color: 'textSecondary',
+                    noWrap: true
+                  }}
+                  primary={conversation.name}
+                  secondary={conversation.lastMessage}
+                />
+                {conversation.unreadCount > 0 && (
+                  <Label color="primary">
+                    <b>{conversation.unreadCount}</b>
+                  </Label>
+                )}
+              </ListItemWrapper>
+            ))}
           </List>
-        )}
-        {currentTab === 'unread' && (
-          <List disablePadding component="div">
-            <ListItemWrapper>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/1.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Zain Baptista"
-                secondary="Hey there, how are you today? Is it ok if I call you?"
-              />
-              <Label color="primary">
-                <b>2</b>
-              </Label>
-            </ListItemWrapper>
-            <ListItemWrapper>
-              <ListItemAvatar>
-                <Avatar src="/static/images/avatars/4.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                sx={{
-                  mr: 1
-                }}
-                primaryTypographyProps={{
-                  color: 'textPrimary',
-                  variant: 'h5',
-                  noWrap: true
-                }}
-                secondaryTypographyProps={{
-                  color: 'textSecondary',
-                  noWrap: true
-                }}
-                primary="Adison Press"
-                secondary="I recently did some buying on Amazon and now I'm stuck"
-              />
-              <Label color="primary">
-                <b>8</b>
-              </Label>
-            </ListItemWrapper>
-          </List>
-        )}
-        {currentTab === 'archived' && (
+        ) : (
           <Box pb={3}>
             <Divider
               sx={{
@@ -376,7 +298,12 @@ function SidebarContent() {
               }}
               variant="subtitle2"
             >
-              Hurray! There are no archived chats!
+              {currentTab === 'archived' 
+                ? 'Hurray! There are no archived chats!' 
+                : searchQuery 
+                  ? 'No conversations match your search.'
+                  : `No ${currentTab} conversations found.`
+              }
             </Typography>
             <Divider
               sx={{
