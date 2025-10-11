@@ -21,21 +21,22 @@ import {
 } from '@mui/material';
 
 // ============================================
-// LIVESTOCK-SPECIFIC SERVICE CATEGORIES
+// LIVESTOCK SERVICE ITEMS (Optional Details)
 // ============================================
-const LIVESTOCK_SERVICE_CATEGORIES = [
-  'Vaccination',
-  'Deworming', 
-  'Treatment',
-  'Health Check',
-  'Castration',
-  'Artificial Insemination',
-  'Pregnancy Testing',
-  'Hoof Trimming',
-  'Tattooing/Tagging',
-  'Blood Sampling',
+const COMMON_SERVICE_ITEMS = [
+  'Anti-FMD Vaccine',
+  'Anti-Rabies Vaccine',
+  'Newcastle Disease Vaccine',
+  'Fowl Pox Vaccine',
+  'Albendazole',
+  'Ivermectin',
+  'Fenbendazole',
+  'Antibiotic Injection',
+  'Vitamin Injection',
   'Health Certificate',
-  'Emergency Treatment'
+  'Transport Permit',
+  'General Service',
+  'Other'
 ];
 
 // ============================================
@@ -135,98 +136,6 @@ const BREED_OPTIONS = {
   ]
 };
 
-// ============================================
-// SERVICE ITEMS BY CATEGORY
-// ============================================
-const SERVICE_ITEMS = {
-  'Vaccination': [
-    'Anti-FMD Vaccine',
-    'Anti-Rabies Vaccine',
-    'Newcastle Disease Vaccine', 
-    'Fowl Pox Vaccine',
-    'Infectious Bursal Disease Vaccine',
-    'Hemorrhagic Septicemia Vaccine',
-    'Blackleg Vaccine',
-    'Anthrax Vaccine',
-    'Brucellosis Vaccine',
-    'Multi-species Vaccine'
-  ],
-  'Deworming': [
-    'Albendazole',
-    'Ivermectin',
-    'Fenbendazole',
-    'Levamisole',
-    'Doramectin',
-    'Multi-spectrum Dewormer',
-    'Broad Spectrum Anthelmintic'
-  ],
-  'Treatment': [
-    'Antibiotic Injection',
-    'Vitamin Injection', 
-    'Anti-inflammatory',
-    'Wound Treatment',
-    'Mastitis Treatment',
-    'Respiratory Treatment',
-    'Digestive Treatment',
-    'Skin Treatment',
-    'Eye Treatment'
-  ],
-  'Health Check': [
-    'General Physical Exam',
-    'Body Condition Scoring',
-    'Weight Assessment',
-    'Temperature Check',
-    'Heart Rate Check',
-    'Respiratory Check'
-  ],
-  'Castration': [
-    'Surgical Castration',
-    'Banding Method',
-    'Chemical Castration'
-  ],
-  'Artificial Insemination': [
-    'Fresh Semen AI',
-    'Frozen Semen AI', 
-    'Estrus Synchronization',
-    'Pregnancy Diagnosis Post-AI'
-  ],
-  'Pregnancy Testing': [
-    'Rectal Palpation',
-    'Ultrasound Scanning',
-    'Blood Test',
-    'Milk Progesterone Test'
-  ],
-  'Hoof Trimming': [
-    'Preventive Trimming',
-    'Corrective Trimming',
-    'Therapeutic Trimming'
-  ],
-  'Tattooing/Tagging': [
-    'Ear Tagging',
-    'Ear Tattooing',
-    'RFID Implant',
-    'Branding'
-  ],
-  'Blood Sampling': [
-    'Disease Testing',
-    'Brucellosis Testing',
-    'Pregnancy Testing',
-    'Nutritional Assessment'
-  ],
-  'Health Certificate': [
-    'Transport Permit',
-    'Health Certificate',
-    'Vaccination Certificate',
-    'Breeding Certificate'
-  ],
-  'Emergency Treatment': [
-    'First Aid',
-    'Emergency Surgery',
-    'Toxicity Treatment', 
-    'Trauma Treatment',
-    'Emergency Medication'
-  ]
-};
 
 // ============================================
 // UNITS BY SPECIES
@@ -276,7 +185,6 @@ const AddWalkInParticipantModal = ({
     owner_name: '',
     owner_contact: '',
     target_category: '',
-    target_species: '',
     target_breed: '',
     service_item: '',
     quantity: '',
@@ -293,20 +201,16 @@ const AddWalkInParticipantModal = ({
   // DERIVED VALUES
   // ============================================
   const availableBreeds = useMemo(() => {
-    return formData.target_species ? BREED_OPTIONS[formData.target_species] || [] : [];
-  }, [formData.target_species]);
-
-  const availableServiceItems = useMemo(() => {
-    return formData.target_category ? SERVICE_ITEMS[formData.target_category] || [] : [];
+    return formData.target_category ? BREED_OPTIONS[formData.target_category] || [] : [];
   }, [formData.target_category]);
 
   const availableUnits = useMemo(() => {
-    return formData.target_species ? UNIT_OPTIONS[formData.target_species] || ['head'] : ['head'];
-  }, [formData.target_species]);
+    return formData.target_category ? UNIT_OPTIONS[formData.target_category] || ['head'] : ['head'];
+  }, [formData.target_category]);
 
   const availableSexOptions = useMemo(() => {
-    return formData.target_species ? SEX_OPTIONS[formData.target_species] || [] : [];
-  }, [formData.target_species]);
+    return formData.target_category ? SEX_OPTIONS[formData.target_category] || [] : [];
+  }, [formData.target_category]);
 
   // ============================================
   // FORM HANDLERS
@@ -315,16 +219,11 @@ const AddWalkInParticipantModal = ({
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
-      // Clear dependent fields when species changes
-      if (field === 'target_species') {
-        newData.target_breed = '';
-        newData.unit = availableUnits[0] || 'head';
-        newData.sex = '';
-      }
-      
-      // Clear service items when category changes
+      // Clear dependent fields when species/category changes
       if (field === 'target_category') {
-        newData.service_item = '';
+        newData.target_breed = '';
+        newData.unit = 'head';
+        newData.sex = '';
       }
       
       return newData;
@@ -344,16 +243,10 @@ const AddWalkInParticipantModal = ({
       newErrors.owner_name = 'Animal owner name is required';
     }
     if (!formData.target_category) {
-      newErrors.target_category = 'Service category is required';
-    }
-    if (!formData.target_species) {
-      newErrors.target_species = 'Animal species is required';
+      newErrors.target_category = 'Animal species is required';
     }
     if (!formData.target_breed) {
       newErrors.target_breed = 'Animal breed is required';
-    }
-    if (!formData.service_item) {
-      newErrors.service_item = 'Service item is required';
     }
     if (!formData.quantity || parseInt(formData.quantity) < 1) {
       newErrors.quantity = 'Quantity must be at least 1';
@@ -385,7 +278,6 @@ const AddWalkInParticipantModal = ({
         ...formData,
         quantity: parseInt(formData.quantity),
         age_months: formData.age_months ? parseInt(formData.age_months) : null,
-        target_category: `${formData.target_category} - ${formData.target_species}`,
         service_catalog_id: serviceCatalog?.id
       };
 
@@ -402,7 +294,6 @@ const AddWalkInParticipantModal = ({
       owner_name: '',
       owner_contact: '',
       target_category: '',
-      target_species: '',
       target_breed: '',
       service_item: '',
       quantity: '',
@@ -434,14 +325,14 @@ const AddWalkInParticipantModal = ({
           🐄 Add Walk-in Livestock Service
           {serviceCatalog && (
             <Chip 
-              label={serviceCatalog.service_name}
+              label={serviceCatalog.name}
               color="primary" 
               size="small"
             />
           )}
         </Box>
         <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-          Register walk-in livestock for immediate health services
+          Register walk-in livestock for: <strong>{serviceCatalog?.name || 'Service'}</strong>
         </Typography>
       </DialogTitle>
 
